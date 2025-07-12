@@ -1,0 +1,679 @@
+html.dark {
+    /* 背景颜色 */
+    --ant-bg-color: #0F1A30;
+    /* 一张纸字片颜色 */
+    --ant-picture-color: #232E45;
+    /* 边框颜色 */
+    --ant-border-color: #1D8CFF;
+    // content-border颜色;
+    --content-border-color: #5297ff;
+    // 小卡片颜色
+    --ant-minCard-color: #2d3b55;
+    /* 小卡片内存图层颜色 */
+    --ant-minCard-mem-color: #1e2c45;
+    /* switch关闭状态下的color 需要时可取用 */
+    --ant-switch-off-color: #ffffff3f;
+    /* 表格头部th背景颜色 */
+    --ant-table-thead-bg-color: rgba(240, 244, 252, 0.25);
+    /* 表格头部th字体颜色 */
+    --ant-table-thead-color: #C6D6FB;
+    /* 表格td背景颜色 */
+    --ant-table-td-bg-color: rgba(253, 252, 255, 0.12);
+    /* 表格td字体颜色 */
+    --ant-table-td-color: #C6D6FB;
+    /* 表格边框颜色 */
+    --ant-border-td-color: #4d72a9;
+    /* 表格td选中时的背景颜色 */
+    --ant-table-td-selected-bg-color: rgba(221, 235, 255, 0.5);
+    /* 常用cad背景颜色 */
+    --cad-bg-color: #293447;
+    /* 头部cad字体颜色 */
+    --cad-font-color: #C6D6FB;
+    /* 按钮背景颜色 */
+    --dark-btn-bg-color: #3d4a61;
+    /* 按钮字体颜色 */
+    --dark-btn-font-color: #C6D6FB;
+    /* 边框颜色 */
+    --dark-btn-border-color: #7EB2FA;
+    /* 图表字体颜色 */
+    --dark-chart-font-color: #C6D6FB;
+    /* tree鼠标经过时的背景颜色颜色 */
+    --ant-tree-hover-bg-color: #e6f7ff55;
+    /* 下cad背景色 */
+    --cad-bg-color-2: #323b52;
+    /* 默认颜色 */
+    --ant-white-color: #C6D6FB;
+    /* 标题颜色#d6e5ff */
+    --ant-title-color: #d6e5ff;
+    /* 下拉框字体颜色 */
+    --ant-dropdown-menu-color: rgb(207, 211, 220);
+    /* 下拉框选中背景颜色 */
+    --ant-select-background-color: rgb(38, 39, 39);
+    /* input背景颜色 */
+    --ant-input-background-color: #50576a;
+    /* input字体颜色 */
+    --ant-input-color: #b4bfde;
+    /* 常用字体颜色 */
+    --ant-text-color: #C6D6FB;
+    /* 定义滑块 内阴影+圆角 */
+    --ant-slider-track-color: #5297ff ;
+    color: var(--ant-text-color);
+
+    body {
+        background-color: var(--ant-bg-color);
+        color: var(--ant-text-color);
+
+        // gis一张图样式
+        .dark_gis {
+            #top-stat>div {
+                background-color: var(--ant-picture-color);
+                color: var(--cad-font-color);
+            }
+
+            #left-alarm-type {
+                div {
+                    background-color: var(--ant-picture-color);
+
+                    img {
+                        filter: invert(50%);
+                    }
+                }
+
+                .checked {
+                    background-color: #355F9E;
+
+                    img {
+                        filter: invert(0%);
+                    }
+                }
+            }
+
+            #right {
+                background-color: var(--ant-bg-color);
+
+                &::before {
+                    content: "";
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 2px;
+                    height: 100%;
+                    z-index: 5;
+                    // background-color: var(--ant-border-color);
+                    background: linear-gradient(180deg, transparent 0%, var(--ant-border-color) 50%, transparent 100%);
+                }
+
+                .device {
+                    background-color: var(--ant-minCard-mem-color);
+                    color: var(--ant-text-color);
+
+                    .total .device-total {
+                        .number {
+                            color: #fff;
+                        }
+                    }
+
+                    >img {
+                        opacity: 0.09;
+                    }
+                    >.right-label{
+                        color: var(--ant-text-color);
+                    }
+                }
+
+                .alarm {
+                    background-color: var(--ant-minCard-mem-color);
+
+                    #handle-rate {
+                        .rate-cave>div {
+                            background-color: var(--ant-minCard-color);
+
+                            >span:nth-child(2) {
+                                color: var(--ant-text-color);
+                            }
+                        }
+                    }
+                    >img{
+                        opacity: 0.09;
+                    }
+                }
+            }
+        }
+        // 卡片
+        #app.dark_card{
+            background-color: var(--ant-bg-color);
+            .left{
+                background-color: var(--cad-bg-color);
+                color: var(--ant-text-color);
+                #area{
+                    background-color: var(--cad-bg-color);
+                   > .company .children > div > span{
+                    color: var(--ant-text-color);
+                   }
+                }
+            }
+            .right .module-item {
+                .module-title{
+                    span{
+                    color: var(--ant-text-color);
+                    }
+                }
+                .module-content .card-item{
+                    background-color: var(--ant-minCard-color);
+                    border-color: var(--ant-border-td-color);
+                    .card-attrs .attr-item{
+                        background-color: var(--ant-minCard-mem-color);
+
+                    }
+                }
+            }
+        }
+        // 综合概览
+        #app.dark_overview {
+            background-color: var(--ant-bg-color) !important;
+
+            .stat-card {
+                background-color: var(--cad-bg-color);
+                .device-overview >.type{
+                    >div{
+                       color:rgba(0, 0, 0, 0.65)
+                    }
+                }
+                .alarm-list>.alarm-item>.right-content {
+                    background-color: var(--cad-bg-color-2);
+
+                    >div:nth-child(2) {
+                        color: var(--dark-chart-font-color);
+                    }
+                }
+
+                .alarm-frequent-station .station-item {
+                    background-color: var(--ant-minCard-mem-color);
+                    color: var(--ant-text-color);
+                }
+
+                .link-device .left-cards>div {
+                    background-color: var(--ant-minCard-mem-color);
+                    color: var(--ant-text-color);
+                }
+            }
+        }
+
+        // 设备状态
+        .dark_device {
+            .status-block {
+                >div {
+                    background: var(--cad-bg-color) !important;
+
+                    .name {
+                        color: var(--ant-text-color) !important;
+                    }
+                }
+            }
+        }
+
+        // 数据中心-报警记录
+        .dark_record {
+            .list-chart-content {
+                >div {
+                    background: var(--cad-bg-color) !important;
+                }
+            }
+        }
+
+        // 图表
+        .list-page .chart-block {
+            .tabs {
+                >div {
+                    background: var(--cad-bg-color);
+
+                    .item-info {
+
+                        .item-name,
+                        .item-value {
+                            color: var(--ant-text-color);
+
+                            span {
+                                color: var(--ant-text-color);
+                            }
+                        }
+                    }
+                }
+            }
+
+            .list-chart-content {
+                .echart-card {
+                    background: var(--cad-bg-color) !important;
+
+                    .card-header span {
+                        color: var(--ant-text-color);
+                    }
+
+                }
+            }
+        }
+
+        // 安全评分
+        #app.dark_score {
+            background-color: var(--ant-bg-color);
+
+            >#score,
+            >#detail>div {
+                background-color: var(--cad-bg-color);
+                border-color: var(--cad-bg-color);
+
+                .right-middle>div {
+                    >span:nth-child(2) {
+                        color: var(--ant-text-color);
+                    }
+
+                }
+
+                >.type-header {
+                    color: var(--ant-text-color);
+
+                    >span:nth-child(2) {
+                        color: var(--ant-text-color);
+                    }
+
+                    >span:nth-child(4) {
+                        color: #fff;
+                    }
+                }
+
+                >.type-content {
+                    >.item>span {
+                        color: var(--ant-text-color);
+                    }
+                }
+            }
+        }
+
+        // 服务器检测
+        #app.dark_monitor {
+            background-color: var(--ant-bg-color);
+
+            .search_box {
+                background-color: var(--cad-bg-color);
+            }
+
+            .module-item {
+                .module-title {
+                    >span {
+                        color: var(--ant-text-color);
+                    }
+
+                    .company_statistics_item {
+                        color: #fff;
+                    }
+                }
+
+                .module-content {
+                    .card-item {
+                        background-color: var(--ant-minCard-color);
+
+                        .ant-progress-text {
+                            color: var(--ant-text-color);
+                        }
+
+                        .itemCard_hd {
+                            background-color: var(--ant-minCard-mem-color);
+                        }
+                    }
+                }
+            }
+        }
+        // 客户端检测
+        #app.dark_client {
+            background-color: var(--ant-bg-color);
+            .search_box {
+                background-color: var(--cad-bg-color);
+            }
+            .module-item {
+                .module-title {
+                    >span {
+                        color: var(--ant-text-color);
+                    }
+
+                    .company_statistics_item {
+                        color: #fff;
+                    }
+                }
+                .module-content {
+                    >.card-item {
+                        background-color: var(--ant-minCard-color);
+                        .ant-progress-text {
+                            color: var(--ant-text-color);
+                        }
+                    }
+                }
+            }
+        }
+        // 机构定义
+        .tree-page{
+            .left-tree{
+                background-color: var(--cad-bg-color)!important;
+            }
+            .right-content{
+                background-color: var(--cad-bg-color)!important;
+                color: var(--ant-text-color);
+                .ant-page-header-heading-title{
+                    color: #fff;
+                }
+                .ant-page-header-heading-sub-title{
+                   color: var(--ant-text-color); 
+                }
+                .ant-form .ant-form-item{
+                    .ant-form-item-label label{
+                        color: var(--ant-text-color);
+                    }
+                }
+            }
+        }
+        // 组织机构
+        .role-container{
+            .header .title{
+                color:#fff;
+            }
+        }
+        // 角色管理
+        .darkRole{
+            .ant-form-item:nth-child(2n-1) label{
+                color: var(--ant-text-color);
+            }
+                .ant-form-item:nth-child(2n) .ant-form-item-label label{
+                color: var(--ant-text-color);
+            }
+            tbody tr th {
+                color: var(--ant-text-color);
+
+            }
+        }
+        // 编辑角色数据权限
+        #app.darkRoleuth{
+            .ant-collapse-header{
+                background: var(--cad-bg-color) !important;
+                color: var(--ant-text-color)!important;
+            }
+            .ant-collapse-content-box label{
+                color: var(--ant-text-color)!important;
+            }
+            .auth-grant{
+                .left .ant-menu{
+                   background: var(--and-bg-color) !important; 
+                   color: var(--ant-text-color)!important;
+                }
+                .right{
+                    >span{
+                        color: var(--ant-text-color)!important;
+                    }
+                }
+            }
+        }
+    }
+
+    .darkButton {
+        background-color: var(--dark-btn-bg-color) !important;
+        color: var(--dark-btn-font-color) !important;
+        border: 1px solid var(--dark-btn-border-color) !important;
+
+        &:hover {
+            background-color: var(--dark-btn-bg-color) !important;
+            color: var(--dark-btn-font-color) !important;
+        }
+    }
+
+    .search-item {
+        color: var(--ant-text-color) !important;
+        ;
+    }
+    .ant-modal-content{
+        background-color: var(--cad-bg-color);
+        .ant-modal-close-x i{
+            color: var(--ant-text-color);
+        }
+        .ant-modal-header{
+            background-color: var(--cad-bg-color);
+            color: var(--ant-text-color);
+            #rcDialogTitle0,#rcDialogTitle1{
+                color: var(--ant-text-color);
+            }
+        }
+        .ant-modal-body{
+            color: var(--ant-text-color);
+            .ant-form-item .ant-form-item-label label{
+                color: var(--ant-text-color);
+            }
+            .ant-form-item-control .ant-checkbox-wrapper{
+                span{
+                 color: var(--ant-text-color);  
+                }
+            }
+            .profile-picture{
+                color: var(--ant-text-color);
+                .action .btn{
+                    color: var(--ant-text-color);
+                    &:hover {
+                    background-color: var(--ant-tree-hover-bg-color);
+                    color: var(--ant-text-color) !important;
+                }
+                    img{
+                     filter: invert(100%);   
+                    }
+                }
+            }
+        }
+        .left-checkbox.ant-checkbox-wrapper{
+        color: var(--ant-text-color);
+        }
+    }
+    .ant-calendar {
+        background-color: var(--ant-input-background-color);
+        color: var(--ant-input-color);
+
+    }
+
+    .ant-table {
+        .ant-table-header {
+            background: transparent;
+
+            >table {
+                border-color: var(--ant-border-td-color);
+            }
+        }
+
+        .ant-table-tbody>tr>td {
+            background: var(--ant-table-td-bg-color);
+            color: var(--ant-table-td-color);
+            border-right: none !important;
+            border-bottom-color: var(--ant-border-td-color) !important;
+        }
+
+        .ant-table-tbody>tr:hover:not(.ant-table-expanded-row):not(.ant-table-row-selected)>td {
+            background: var(--ant-table-td-selected-bg-color);
+            // color: var(--ant-table-td-color);
+        }
+    }
+
+    .ant-drawer-wrapper-body {
+        background-color: var(--cad-bg-color);
+        color: var(--ant-text-color);
+
+        .ant-drawer-header {
+            background-color: var(--cad-bg-color);
+
+            .ant-drawer-title {
+                color: var(--ant-text-color);
+            }
+        }
+
+        .ant-drawer-body {
+            .ant-timeline {
+                color: var(--ant-text-color);
+            }
+            .ant-form-item-label{
+                label{
+                    color: var(--ant-text-color);
+                }
+            }
+            .right-content {
+                background: var(--ant-minCard-mem-color);
+
+                >div:nth-child(2) {
+                    color: var(--ant-text-color);
+                }
+            }
+        }
+    }
+
+    .ant-calendar-range .ant-calendar-input {
+        background-color: var(--ant-input-background-color);
+        color: var(--ant-input-color);
+    }
+
+    .ant-pagination-total-text {
+        color: var(--ant-text-color);
+    }
+    .ant-pagination-item,.ant-pagination-item-link{
+        background: var(--dark-btn-bg-color) !important;
+        a{
+        color: var(--ant-text-color)!important;
+        }
+        >i{
+        color: var(--ant-text-color)!important;
+        }
+    }
+    .ant-table-placeholder {
+        background: var(--ant-switch-off-color);
+        color: var(--ant-text-color);
+    }
+
+    .ant-table-body {
+        border-color: #60A1FC !important;
+        background: transparent !important;
+
+        >table {
+            border-color: var(--ant-border-td-color) !important;
+
+            tbody {
+                >tr:nth-child(2n) {
+                    background-color: rgba(253, 252, 255, 0.04);
+                }
+            }
+        }
+
+    }
+
+    .ant-table-thead {
+        >tr {
+            >th {
+                background: var(--ant-table-thead-bg-color) !important;
+                color: var(--ant-table-thead-color);
+                border-right: none !important;
+                border-bottom: 2px solid var(--ant-border-td-color) !important;
+            }
+        }
+    }
+
+    .ant-calendar-picker-input {
+        .ant-calendar-picker-clear {
+            background-color: var(--ant-input-background-color);
+            color: var(--ant-dropdown-menu-color);
+        }
+
+        .ant-calendar-picker-clear:hover {
+            background-color: var(--ant-input-background-color);
+        }
+    }
+    input{
+        background-color: var(--ant-minCard-color)!important;
+        color: var(--ant-input-color)!important;
+    }
+    .ant-input,
+    .ant-select-selection {
+        background-color: var(--ant-minCard-color)!important;
+        color: var(--ant-input-color)!important;
+    }
+    .ant-select-dropdown-menu-item-active{
+        background-color: var(--ant-minCard-color)!important;
+        color: var(--ant-input-color)!important;
+    }
+        .ant-select-dropdown-menu-item-selected{
+        background-color: var(--ant-input-background-color)!important;
+        color:#fff !important;
+    }
+    // 多选
+    .ant-select-selection--multiple {
+        .ant-select-selection__choice {
+            background-color: var(--cad-bg-color);
+            border: none;
+            color: var(--ant-input-color);
+        }
+
+        .ant-select-selection__choice__remove {
+            color: var(--ant-input-color);
+        }
+    }
+
+    .ant-select-dropdown {
+        background-color: var(--ant-input-background-color);
+
+        .ant-select-dropdown-menu-item {
+            color: var(--ant-input-color);
+        }
+    }
+
+    .ant-select-tree-dropdown .ant-select-dropdown-search {
+        background-color: var(--ant-input-background-color);
+        color: var(--ant-input-color);
+    }
+
+    .ant-select-tree li .ant-select-tree-node-content-wrapper {
+        color: var(--ant-dropdown-menu-color);
+
+        &:hover {
+            background-color: var(--ant-tree-hover-bg-color);
+        }
+    }
+
+    .ant-select-tree li .ant-select-tree-node-content-wrapper.ant-select-tree-node-selected {
+        background-color: var(--ant-select-background-color);
+    }
+
+    .ant-pagination-jump-next .ant-pagination-item-container .ant-pagination-item-ellipsis,
+    .ant-pagination-jump-prev .ant-pagination-item-container .ant-pagination-item-ellipsis {
+        color: #ffffff55;
+    }
+
+    .ant-checkbox-disabled .ant-checkbox-inner {
+        background-color: #979ca8;
+        border-color: #B2D0FA !important;
+    }
+
+    .ant-tree {
+        .ant-tree-treenode-switcher-open {
+            >span {
+                color: var(--ant-text-color) !important;
+            }
+
+            .ant-tree-node-selected span {
+                color: #0F1A30 !important;
+            }
+        }
+
+        li .ant-tree-node-content-wrapper:hover {
+            background-color: var(--ant-tree-hover-bg-color) !important;
+        }
+
+
+    }
+    /*定义滚动条轨道 内阴影+圆角*/
+::-webkit-scrollbar-track {
+    background-color: var(--ant-switch-off-color) !important;
+}
+
+/*定义滑块 内阴影+圆角*/
+::-webkit-scrollbar-thumb {
+    background: var(--ant-slider-track-color) !important;
+}
+}

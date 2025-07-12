@@ -1,0 +1,141 @@
+<template>
+    <div
+        class="matrix-card"
+        v-if="visible"
+        :style="{'width': (width || 460) + 'px', 'height': (height || 300) + 'px', 'left': left + 'px', 'top': top + 'px'}"
+    >
+        <div class="card-header">
+            <img src="/matrix/assets/img/icon.png" alt="" />
+            <span>{{ title }}</span>
+            <div class="line-div"></div>
+            <img class="line-img" src="/matrix/assets/img/line.png" alt="" />
+            <a-icon class="close-btn" type="close" @click="visible = false"></a-icon>
+        </div>
+        <div class="card-content">
+            <slot name="content"></slot>
+        </div>
+    </div>
+</template>
+
+<script>
+    //@ sourceURL=matrix-card.js
+    const gap = 10;
+    export default {
+        props: ["title", "centerX", "centerY", "width", "height", "theme"],
+        data() {
+            return {
+                visible: true,
+            };
+        },
+        computed: {
+            left() {
+                let half = (this.width || 460) / 2;
+                let res = `calc("50% - ${half}px")`;
+                if (this.centerX) {
+                    if (this.centerX - half < 0) {
+                        return gap;
+                    } else if (this.centerX + half > window.innerWidth) {
+                        return window.innerWidth - half * 2 - gap;
+                    } else {
+                        return this.centerX - half;
+                    }
+                }
+                return res;
+            },
+            top() {
+                let half = (this.height || 300) / 2;
+                let res = `calc("50% - ${half}px")`;
+                if (this.centerY) {
+                    if (this.centerY - half < 0) {
+                        return gap;
+                    } else if (this.centerY + half > window.innerHeight) {
+                        return window.innerHeight - half * 2 - gap;
+                    } else {
+                        return this.centerY - half;
+                    }
+                }
+                return res;
+            },
+        },
+        mounted() {
+            console.log(111);
+        },
+        methods: {},
+    };
+</script>
+
+<style lang="less">
+    .matrix-card {
+        display: flex;
+        flex-direction: column;
+        background: #f4f7ff;
+        border-radius: 20px;
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        left: 10px;
+        top: 10px;
+        box-shadow: 0px 0px 15px 4px grey;
+        z-index: 999;
+
+        .card-header {
+            height: 40px;
+            line-height: 40px;
+            padding-left: 16px;
+            position: relative;
+            display: flex;
+            align-items: center;
+
+            img {
+                width: 23px;
+                height: 21px;
+                margin-right: 6px;
+            }
+
+            span {
+                display: inline-block;
+                color: #1890ff;
+                font-weight: bold;
+                font-size: 18px;
+                letter-spacing: 2px;
+            }
+
+            .more-btn {
+                color: #1890ff;
+                font-size: 24px;
+                position: absolute;
+                right: 20px;
+                cursor: pointer;
+            }
+
+            .line-div {
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                width: calc("100% - 100px");
+                border-bottom: 1px solid #1890ff;
+            }
+
+            .line-img {
+                width: 103px;
+                height: 3px;
+                position: absolute;
+                bottom: -1px;
+                right: 0;
+            }
+
+            .close-btn {
+                position: absolute;
+                right: 16px;
+                font-size: 16px;
+                color: #1890ff;
+            }
+        }
+
+        .card-content {
+            flex: 1;
+            height: 0;
+            position: relative;
+        }
+    }
+</style>

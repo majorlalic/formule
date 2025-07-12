@@ -1,0 +1,80 @@
+<template>
+    <matrix-card title="实时曲线" :center-x="centerX" :center-y="centerY">
+        <template v-slot:content>
+            <div :id="'line-chart'+ id" style="width: 100%; height: 100%"></div>
+        </template>
+    </matrix-card>
+</template>
+
+<script>
+    //@ sourceURL=line-chart.js
+    import { loadVueComponent } from "/matrix/js/vue-component-loader.js";
+
+    export default {
+        props: ["id", "name", "centerX", "centerY", "width", "height", "theme"],
+        inject: ["eventBus"],
+        data() {
+            return {
+
+            };
+        },
+        components: {
+            "matrix-card": () => loadVueComponent("/matrix/components/matrix-card.html"),
+        },
+        created() {},
+        mounted() {
+            console.log(this.eventBus);
+
+            this.$nextTick(() => {});
+            setTimeout(() => {
+                this.initChart();
+            }, 300);
+        },
+        methods: {
+            initChart(xArr, yArr) {
+                var myChart = echarts.init(document.getElementById("line-chart" + this.id));
+                option = {
+                    xAxis: {
+                        type: "category",
+                        data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+                    },
+                    yAxis: {
+                        type: "value",
+                    },
+                    series: [
+                        {
+                            data: [820, 932, 901, 934, 1290, 1330, 1320],
+                            type: "line",
+                            smooth: true,
+                        },
+                    ],
+                    grid: {
+                        left: "12%",
+                        right: "8%",
+                        top: "8%",
+                        bottom: "12%",
+                    },
+                };
+                myChart.setOption(option);
+            },
+        },
+    };
+</script>
+
+<style lang="less">
+    .live-video {
+        padding: 10px;
+        border: 1px solid #aaa;
+        position: fixed;
+        left: 10px;
+        top: 10px;
+
+        width: 100px;
+        height: 100px;
+        background-color: bisque;
+        border-radius: 8px;
+        h2 {
+            color: #1a73e8;
+        }
+    }
+</style>

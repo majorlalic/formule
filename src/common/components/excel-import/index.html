@@ -1,0 +1,21 @@
+<a-modal width="50%" class="user-import-modal" title="批量导入数据" :visible="visible" closable :mask-closable="false"
+    :keyboard="false" :destroy-on-close="true" @cancel="closeImportModal">
+    <template slot="footer">
+        <a-button v-on:click="closeImportModal" type="primary" @click="closeImportModal">{{$t('取消')}}</a-button>
+        <a-button v-on:click="confirmImport" :disabled="!importFile" type="primary"
+            :loading="importLoading">{{$t('导入')}}</a-button>
+    </template>
+    <div class="modal-body">
+        <div class="form-group">
+            <label>{{$t('请选择导入文件')}}</label>
+            <input class="form-control user-import-input" type="file" v-on:change="selectImportFile($event)"
+                id="userImportFileInput" style="height:40px" />
+        </div>
+        <div class="form-group" v-if="importModalShowInfo">
+            <div id="infoTip" class="import-user-info-tip">
+                <label class="tip-item">{{$t('提示信息')}}</label>
+                <p class="tip-item-p" v-for="item of infoTips">{{item}}</p>
+            </div>
+        </div>
+    </div>
+</a-modal>

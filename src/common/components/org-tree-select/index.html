@@ -1,0 +1,15 @@
+<template>
+    <div class="select-container">
+        <a-tree-select
+            v-model="value"
+            style="width: 100%"
+            :dropdown-style="{ maxHeight: '400px', overflow: 'auto' }"
+            :tree-data="treeData"
+            :placeholder="placeholder"
+            :tree-default-expand-all="true"
+            show-search="true"
+            tree-node-filter-prop="title"
+        >
+        </a-tree-select>
+    </div>
+</template>

@@ -1,0 +1,38 @@
+.table-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+
+    .table-load {
+        position: fixed;
+        left: 0;
+        top: 0;
+        z-index: 99;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.1);
+        // backdrop-filter: blur(2px);
+        .ant-spin {
+            position: relative;
+            top: 300px;
+            z-index: 999;
+        }
+    }
+
+    td {
+        .anticon {
+            font-size: 20px!important;
+            color: #1890FF!important;
+            cursor: pointer;
+        }
+    }
+    
+    .ant-table-hide-scrollbar{
+        overflow: hidden!important;
+        height: 59px!important;
+        width: calc(~"100% - 5px")!important;
+    }
+}

@@ -1,0 +1,51 @@
+html,
+body,
+#scene {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    // background-color: black;
+}
+.leaflet-control-container {
+    height: 100%;
+}
+
+.leaflet-bottom {
+    display: none;
+}
+
+.element-name {
+    position: relative;
+    left: 0;
+    top: 0;
+    transform: translate(-40%, -60px);
+    display: inline-block;
+    padding: 4px 8px;
+    font-size: 16px;
+    border-radius: 4px;
+    white-space: nowrap;
+    text-align: center;
+    color: #fff;
+    font-weight: bold;
+}
+
+.element-text {
+    position: relative;
+    left: 0;
+    top: 0;
+    transform: translate(-40%, 0);
+    display: inline-block;
+    padding: 4px 8px;
+    font-size: 16px;
+    border-radius: 4px;
+    white-space: nowrap;
+    text-align: center;
+    color: #fff;
+    font-weight: bold;
+}
+
+.element-name.bgShadow {
+    background-color: rgba(0, 0, 0, 0.3);
+}

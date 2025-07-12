@@ -1,0 +1,52 @@
+<template>
+    <matrix-card title="实时监控" :center-x="centerX" :center-y="centerY">
+        <template v-slot:content> matrix-card 自定义内容 {{name}} </template>
+    </matrix-card>
+</template>
+
+<script>
+    //@ sourceURL=line-video.js
+    import { ICONS } from "/matrix/js/const.js";
+    import { loadVueComponent } from "/matrix/js/vue-component-loader.js";
+
+    export default {
+        props: ["name", "centerX", "centerY", "width", "height", "theme", "bussinessId", "bussinessType"],
+        inject: ["eventBus"],
+        data() {
+            return {};
+        },
+        components: {
+            "matrix-card": () => loadVueComponent("/matrix/components/matrix-card.html"),
+        },
+        created() {},
+        mounted() {
+            console.log(this.eventBus);
+
+            this.init();
+            console.log(this.bussinessId, this.bussinessType);
+        },
+        methods: {
+            init() {
+                console.log(ICONS);
+            },
+        },
+    };
+</script>
+
+<style lang="less">
+    .live-video {
+        padding: 10px;
+        border: 1px solid #aaa;
+        position: fixed;
+        left: 10px;
+        top: 10px;
+
+        width: 100px;
+        height: 100px;
+        background-color: bisque;
+        border-radius: 8px;
+        h2 {
+            color: #1a73e8;
+        }
+    }
+</style>

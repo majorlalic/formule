@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+
+    <link rel="stylesheet" href="/dep/plugins/ant-design/antd.min.css" />
+    <link href="/dep/css/animate.min.css" rel="stylesheet" />
+    <link href="/dep/css/magic.min.css" rel="stylesheet" />
+    <link rel="stylesheet/less" href="./index.less" />
+    <script src="/dep/js/less.min.js"></script>
+    <script src="/dep/js/jquery-3.4.1.min.js"></script>
+</head>
+
+<body class="alarm-modal">
+    <div id="app" v-clock>
+        <div class="alarm-modal-container" v-if="visiable" :class="{'alarm-modal-container-show':!isDetail}">
+            <div class="left-div" v-show="isShowList">
+                <div class="title-div">
+                    <img src="./imgs/icon.png" alt="">
+                    <span>报警列表</span>
+                    <img class="img-span" src="./imgs/refresh.png" @click="refreshAlarm" title="刷新列表">
+                </div>
+                <transition-group
+                    enter-active-class="magictime spaceInLeft"
+                    leave-active-class="magictime spaceOutRight"
+                    tag="div"
+                    class="alarm-list-div"
+                    v-show="alarmlist.length > 0"
+                    :duration="{ enter: 1000, leave: 200 }"
+                >
+                    <div :id="item.id"
+                    :key="item.id" v-for="(item,index) of alarmlist" @click="changeAlarm(item)" class="card-div"
+                    :class="{'checked':alarmId==item.id}">
+                        <div :style="{'background-color': `rgba(${item.color}, 0.3)`}">
+                            <div class="img-div">
+                                <img :src="'./imgs/'+ item.img + '.png'" alt="" />
+                            </div>
+
+                            <div class="single-line-ellipsis">{{item.typeName}}</div>
+
+                        </div>
+                        <div>
+                            <div style="line-height: 25px;">
+                                <span :title="item.orgName"
+                                    style="color:#4A5A7F;font-weight: bold;">{{item.orgName}}</span>
+                            </div>
+                            <div style="line-height: 25px;" class="single-line-ellipsis">
+                                <span style="color:#4A5A7F">{{item.position}}</span>
+                            </div>
+                            <div class="num-div number">
+                                <span style="color:#397DFF">{{item.occurTime}}</span>
+                            </div>
+                        </div>
+                    </div>
+                </transition-group>
+                <div style="height:40px; padding: 0 16px; margin-bottom: 18px;">
+                    <div class="more-btn" @click="getMore" title="点击查看更多">更多
+                        <img src="./imgs/more.png" alt="">
+                    </div>
+                </div>
+
+            </div>
+            <div class="right-div">
+                <div class="title-div">
+
+                    <img src="./imgs/icon.png" alt="">
+                    <span>报警详情</span>
+
+                    <a-icon class="close-btn" type="close" @click="cancel" />
+                </div>
+                <div class="alarm-detail-div">
+                    <div class="info-div">
+                        <div style="font-size:16px;font-weight: bold;height: 41px;max-width: 280px;">{{alarm?.area?.description}}</div>
+                        <div>报警防区：<span :title="alarm?.area?.fullName">{{alarm?.area?.fullName}}</span></div>
+                        <div>报警类型：<span :title="alarm?.eventTypeName">{{alarm?.eventTypeName}}</span></div>
+                        <div>报警状态：<span :title="alarm?.stateName">{{alarm?.stateName}}</span></div>
+                        <div>报警时间：<span :title="alarm?.createdOn">{{alarm?.createdOn}}</span></div>
+                        <div class="baojing-div">
+                            <div class="left-content" style="line-height: 23px;">
+                                <div class="multiline-ellipsis">
+                                    报警源：<span>{{alarm?.events?.length > 0? alarm?.events[eventsIndex-1].deviceName :
+                                        ''}}{{alarm?.events?.length >
+                                        0?alarm?.events[eventsIndex-1].deviceNum: ''}}</span>
+                                </div>
+                                <div class="single-line-ellipsis">设备类型：<span>{{alarm?.events?.length >
+                                        0?alarm?.events[eventsIndex-1].deviceTypeName:
+                                        ''}}</span></div>
+                                <div>报警时间：<span>{{alarm?.events?.length > 0?alarm?.events[eventsIndex-1].createdOn:
+                                        ''}}</span></div>
+                            </div>
+                            <div class="right-progress">
+                                <div @click="minx"><img src="./imgs/arrowup.png" alt=""></div>
+                                <div>{{eventsIndex}}/{{eventsTotal}}</div>
+                                <div @click="add"><img src="./imgs/arrowdown.png" alt=""></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="media-div">
+                        <div class="btn-container">
+                            <div class="btn-nomal" v-for="item in tabs" v-if="item.key!=3 || getAlarmSnap(alarm.extra)"
+                                :class="{'btn-selected':selectedTabKey==item.key}" @click="selectedTabKey=item.key">
+                                {{item.name}}
+                            </div>
+                        </div>
+                        <div class="arrow arrow-position" :position-index='selectedTabKey'></div>
+                        <div class="iframe-container" id="media-content">
+                            <!-- <iframe id="videobox" :src="getPlaySrc"
+                                                    style="width: 100%;height: 100%;border: none; margin: 0; padding: 0"></iframe> -->
+                            <div style="width: 100%; height: 100%" v-if="!isVideoTrayReady">
+                                <span style="color: tomato;font-size: 14px;">未检测到视频插件, 请点击"启动视频插件"后刷新页面重试, 如未安装插件, 请点击下载插件</span>
+                                <div style="margin-top: 20px;">
+                                    <a-button @click="wakeTray">启动视频插件</a-button>
+                                    <a-button style="margin-left: 10px" @click="downloadTray">下载插件</a-button>
+                                </div>
+                            </div>
+                            <div v-if="isVideoTrayReady&& !isExistCamera && selectedTabKey!=3" id="video-box" style="width: 100%; height: 100%;">
+                                <span style="color: tomato;font-size: 14px;">未配置联动</span>
+                            </div> 
+                            <div v-if="selectedTabKey==3" id="video-box" style="width: 100%; height: 100%;">
+                                <img :src="getAlarmSnap(alarm.extra)" alt="" :style="imgStyleData">
+                            </div>                   
+                        </div>
+                    </div>
+                </div>
+                <div class="confirm-div">
+                    <div>报警确认：</div><a-input v-model="message" :disabled="alarm.state != 0 && alarm.state != 1"></a-input>
+                </div>
+                <div class="operation-btn">
+                    <button type="button" class="ant-btn  ant-btn-primary" v-show="alarm.state == 0 || alarm.state == 1"
+                        @click="handleAlarm(false)"><span>处警</span></button>
+                    <button type="button" class="ant-btn " v-show="alarm.state == 0 || alarm.state == 1"
+                        @click="handleAlarm(true)"><span>误报</span></button>
+                    <button type="button" class="ant-btn " @click="cancel"><span>取消</span></button>
+                </div>
+            </div>
+        </div>
+        <div v-else="!visiable" class="none">
+            <a-empty description="暂无告警"/>
+        </div>
+        <a-icon class="close-btn" type="close" @click="cancel" />
+    </div>
+
+    <script src="/dep/js/echarts.min.js"></script>
+    <script src="/dep/js/vue.min.js"></script>
+    <script src="/dep/js/vue-component-loader.js"></script>
+    <script src="/dep/plugins/ant-design/moment.js"></script>
+    <script src="/dep/plugins/ant-design/moment-with-locales.js"></script>
+    <script src="/dep/plugins/ant-design/antd-with-locales.min.js"></script>
+    <script src="/dep/plugins/ant-design/moment-locale-zh_cn.js"></script>
+    <script src="./index.js?v=1.0" type="module"></script>
+</body>
+
+</html>

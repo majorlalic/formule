@@ -1,0 +1,312 @@
+#app {
+    padding: 30px 20px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+
+    .list-page {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        // box-shadow: 0 0 10px 0 rgba(152, 152, 152, 0.4);
+        // border-radius: 6px;
+        // padding: 20px 20px;
+
+        .search-block {
+            display: flex;
+            margin-bottom: 20px;
+            grid-gap: 20px;
+            flex-wrap: wrap;
+
+            .search-item {
+                display: flex;
+                grid-gap: 8px;
+                line-height: 32px;
+                font-size: 14px;
+                color: #333333;
+            }
+
+            .search-btns {
+                display: flex;
+                grid-gap: 10px;
+            }
+        }
+
+        .operation-block {
+            display: flex;
+
+            .left-operate {
+                margin-bottom: 20px;
+                display: flex;
+                grid-gap: 20px;
+                line-height: 32px;
+                font-size: 14px;
+                color: #bcbcbc;
+                width: 50%;
+            }
+
+            .right-operate {
+                width: 50%;
+                display: flex;
+                justify-content: flex-end;
+            }
+        }
+
+        .chart-block {
+            margin-bottom: 20px;
+        }
+
+        #table-content {
+            flex: 1;
+            height: 0;
+
+            .operation-btns {
+                display: flex;
+                justify-content: space-evenly;
+                align-items: center;
+            }
+        }
+    }
+
+    .split-line {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        margin: 0 20px;
+        background: linear-gradient(to bottom, transparent 0%, #e8e8e8 50%, transparent 100%);
+        width: 2px;
+
+        img {
+            width: 14px;
+            position: absolute;
+            top: 40%;
+            left: -13px;
+            cursor: pointer;
+        }
+
+        .toggle-arrow {
+            color: #ffffff;
+            font-size: 14px;
+            position: absolute;
+            top: calc(~"40% + 24px");
+            left: -13px;
+            cursor: pointer;
+        }
+    }
+
+    .tree-page {
+        display: flex;
+        width: 100%;
+        height: 100%;
+
+        .left-tree {
+            width: 20%;
+            overflow: hidden;
+            // box-shadow: 0 0 10px 0 rgba(152, 152, 152, 0.4);
+            // border-radius: 6px;
+            padding: 20px 10px;
+            background-color: #ffffff;
+            border-right: 1px solid rgba(0, 0, 0, 0.45);
+        }
+
+        .right-content {
+            margin-left: 20px;
+            flex: 1;
+            // box-shadow: 0 0 10px 0 rgba(152, 152, 152, 0.4);
+            // border-radius: 6px;
+            padding: 20px 10px;
+            background-color: #ffffff;
+        }
+    }
+
+    .slide-left-enter-active,
+    .slide-left-leave-active {
+        transition: width 1s;
+    }
+
+    .slide-left-enter,
+    .slide-left-leave-to {
+        width: 0% !important;
+    }
+}
+
+.bottom-btns {
+    margin-top: 10px;
+    text-align: center;
+}
+
+.ant-table {
+    border-bottom: 1px solid #e8e8e8 !important;
+
+    .ant-table-tbody {
+        & > tr:last-child {
+            td {
+                border-bottom: none !important;
+            }
+        }
+    }
+
+    .ant-table-thead {
+        tr > th {
+            padding: 10px !important;
+        }
+    }
+
+    .ant-table-tbody > tr > td {
+        padding: 10px !important;
+    }
+
+    .hasScroll {
+        .ant-table-header {
+            overflow: hidden !important;
+            padding-right: 4px !important;
+            margin-bottom: 0 !important;
+        }
+    }
+}
+
+.ant-btn:not(.ant-btn-primary) {
+    border-color: #c5dbfb;
+    color: #5fa1fc;
+}
+
+.operategroup {
+    .ant-btn {
+        border: none !important;
+    }
+}
+
+.ant-input-search{
+    input{
+        background-color: #F4F7FE;
+    }
+}
+
+.ant-btn:not(.ant-btn-primary) {
+    border-color: #72ADFF;
+    background-color: #F4F7FE;
+    color: #1F7CFF;
+}
+
+.ant-btn:not(.ant-btn-primary):hover {
+    background-color: #E3EFFF;
+}
+
+
+.ant-input,
+.ant-select-selection {
+    border-color: #B2D0FA;
+    background-color: #F4F7FE;
+}
+
+.ant-pagination-options{
+    .ant-select-selection{
+        background: none!important;
+    }
+}
+
+.ant-input-search-icon,
+.ant-select-arrow-icon {
+    color: #5fa1fc;
+}
+
+.ant-drawer-content {
+    .ant-form-item {
+        margin: 0 0 12px !important;
+    }
+}
+
+.ant-table-body > table {
+    border: 1px solid #b2d0fa !important;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+.ant-table-thead {
+    th {
+        background-color: #f0f4fc !important;
+    }
+
+    td {
+        border-color: #b2d0fa !important;
+    }
+
+    tr > th {
+        border-right: 1px solid #b2d0fa !important;
+        border-bottom: 1px solid #b2d0fa !important;
+    }
+
+    tr {
+        & > th:last-child{
+            border-right: none!important;
+        }
+    }
+
+    table{
+        border: 1px solid #b2d0fa !important;
+    }
+}
+
+.ant-table{
+    border-bottom: none!important;
+}
+
+.ant-table-tbody > tr > td {
+    border-bottom: 1px solid #b2d0fa !important;
+    border-right: 1px solid #b2d0fa !important;
+}
+
+.ant-table-row{
+    & > td:last-child{
+        border-right: none!important;
+    }
+}
+
+.ant-table-header{
+    table{
+        border: 1px solid #b2d0fa!important;
+    }
+}
+
+::-webkit-scrollbar {
+    width: 4px !important;
+    height: 4px !important;
+    background-color: #07a7fd;
+    border-radius: 8px !important;
+}
+
+/*定义滚动条轨道 内阴影+圆角*/
+::-webkit-scrollbar-track {
+    box-shadow: none !important;
+    -webkit-box-shadow: none !important;
+    border-radius: 8px !important;
+    background-color: #f9f9f9 !important;
+}
+
+/*定义滑块 内阴影+圆角*/
+::-webkit-scrollbar-thumb {
+    width: 2px !important;
+    height: 2px !important;
+    border-radius: 4px !important;
+    -webkit-box-shadow: none !important;
+    background: #e4e2e2 !important;
+}
+
+@font-face {
+    font-family: "scnBold";
+    src: url("/dep/fonts/SCN-BOLD.otf") format("truetype");
+}
+
+@font-face {
+    font-family: "lcddPro";
+    src: url("/dep/fonts/youshebiaotihei.ttf") format("truetype");
+}
+
+.num {
+    font-family: "lcddPro";
+    font-weight: bold;
+}
+@import url("./dark.less");

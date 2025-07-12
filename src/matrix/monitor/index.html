@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+
+        <link rel="stylesheet" href="/dep/plugins/ant-design/antd.min.css" />
+        <link href="/dep/css/animate.min.css" rel="stylesheet" />
+        <link rel="stylesheet/less" href="./index.less" />
+        <script src="/dep/js/less.min.js"></script>
+    </head>
+
+    <body>
+        <div id="app">
+            <div class="left">
+                <div class="title">图元</div>
+                <div class="search">
+                    <a-space>
+                        <a-input style="width: 200px" placeholder="请输入图元id或名称"></a-input>
+
+                        <a-select style="width: 200px" :options="eleTypes" placeholder="请选择图元类型"> </a-select>
+                        <a-button type="primary">搜索</a-button>
+                    </a-space>
+                </div>
+                <div class="content waterfall">
+                    <div class="item" v-for="item of eles">
+                        <a-card :class="{'light': item.isLight}" :title="item.name">
+                            <template v-if="getEleAttr(item.data).length > 0">
+                                <div class="ele-attrs" v-for="attr of getEleAttr(item.data)">
+                                    <div>{{attr.key}}</div>
+                                    <div>
+                                        <pre>{{ formattedJson(attr.value) }}</pre>
+                                    </div>
+                                </div>
+                            </template>
+                            <template v-else> 无属性 </template>
+                            <a-badge slot="extra" status="success" />
+                        </a-card>
+                    </div>
+                </div>
+            </div>
+
+            <div class="center">
+                <div class="title">数据点</div>
+                <div class="search">
+                    <a-space>
+                        <a-input style="width: 200px" placeholder="请输入数据占位符"></a-input>
+                        <a-button type="primary">搜索</a-button>
+                    </a-space>
+                </div>
+                <div class="content">
+                    <a-table :columns="columns" :data-source="datas">
+                        <span slot="operate" slot-scope="text, record">
+                            <a-icon type="pushpin" theme="twoTone" @click="lightEle(record)" />
+                        </span>
+                    </a-table>
+                </div>
+            </div>
+
+            <div class="right">
+                <div class="title">事件</div>
+                <div class="content">
+                    <div class="logs">
+                        <a-table :columns="logColumns" :data-source="logs"> </a-table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="/dep/js/echarts.min.js"></script>
+        <script src="/dep/js/vue.min.js"></script>
+        <script src="/dep/js/vue-component-loader.js"></script>
+        <script src="/dep/plugins/ant-design/moment.js"></script>
+        <script src="/dep/plugins/ant-design/moment-with-locales.js"></script>
+        <script src="/dep/plugins/ant-design/antd-with-locales.min.js"></script>
+        <script src="/dep/plugins/ant-design/moment-locale-zh_cn.js"></script>
+        <script src="./index.js" type="module"></script>
+    </body>
+</html>

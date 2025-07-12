@@ -1,0 +1,23 @@
+<template>
+    <div class="table-container">
+        <a-table
+            :columns="columns"
+            :data-source="datas"
+            :pagination="pagination"
+            @change="onChangePage"
+            :scroll="{y: hasScroll?height:false}"
+            :bordered="true"
+            :row-key="rowKey"
+            :expanded-row-keys.sync="expandedRowKeys"
+            :row-selection="hasSelect? { selectedRowKeys: selectedRowKeys, onChange: onSelectChange } : null"
+            :locale="{'emptyText': $t('无数据')}"
+        >
+            <slot v-for="custom in slots" :slot="custom" slot-scope="text, record">
+                <slot :name="custom" :text="text" :record="record"></slot>
+            </slot>
+        </a-table>
+        <div class="table-load" v-show="isLoad">
+            <a-spin size="large" />
+        </div>
+    </div>
+</template>

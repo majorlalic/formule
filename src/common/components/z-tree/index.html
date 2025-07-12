@@ -1,0 +1,36 @@
+<template>
+    <div class="tree-container">
+        <div class="tree-search" v-if="searchTree">
+            <a-input-search style="margin-bottom: 8px" placeholder="搜索名称" v-model="searchValue"
+                @change="onSearchValueChanged" />
+        </div>
+        <div class="tree-content">
+            <a-tree v-if="treeData.length>0" :tree-data="treeData" :selected-keys="selectedKeys"
+                :expanded-keys="expandedKeys" :checkable="checkable" auto-expand-parent v-model="checkedKeys"
+                @expand="onExpand" @select="onTreeSelected">
+                <template v-if="searchTree" #title="{ key: treeKey, title, canContextMenu }">
+                    <slot name="node-type-slot" :item="getNode(treeKey)"></slot>
+                    <a-dropdown :trigger="['contextmenu']">
+                        <span v-if="searchTree && title.indexOf(searchValue) > -1">
+                            {{ title.substr(0, title.indexOf(searchValue)) }}
+                            <span style="color: #f50">{{searchValue}}</span>
+                            {{ title.substr(title.indexOf(searchValue) + searchValue.length) }}
+                        </span>
+                        <span v-else>{{title}}</span>
+                        <template #overlay>
+                            <a-menu v-if="menus.length>0 && canContextMenu"
+                                @click="({ key: menuKey }) => onContextMenuClick(treeKey, menuKey)">
+                                <a-menu-item v-for="menu in menus" :key="menu.key">{{menu.title}}</a-menu-item>
+                            </a-menu>
+                        </template>
+                    </a-dropdown>
+
+                </template>
+                <template v-else #title="{ key: treeKey, title, canContextMenu }">
+                    <slot name="node-type-slot" :item="getNode(treeKey)"></slot>
+                    <span>{{title}}</span>
+                </template>
+            </a-tree>
+        </div>
+    </div>
+</template>
