@@ -134,25 +134,19 @@ export const deepClone = (obj) => {
 export const initFrame = (containerId, scene) => {
     return new Promise((resolve, reject) => {
         let { id, type, conf, elements } = scene;
-        let typeName;
-        switch (type) {
-            case SceneType.GiS:
-                typeName = "gis";
-                break;
-            case SceneType.ThreeD:
-                typeName = "3d";
-                break;
-            case SceneType.TwoD:
-                typeName = "2d";
-                break;
+
+        if(SceneType[type] == undefined){
+            console.error(`未找到场景类型: ${type}`);
+            return;
         }
+        let dir = SceneType[type].dir;
 
         const parts = location.href.replace(location.origin, "").split("/");
         let systemName;
         if (parts.length > 2) {
             systemName = parts[1];
         }
-        let url = `/${systemName}/matrix/engine/${typeName}/index.html`;
+        let url = `/${systemName}/matrix/engine/${dir}/index.html`;
 
         let container = document.getElementById(containerId);
         if (!container) {

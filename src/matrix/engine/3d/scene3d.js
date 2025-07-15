@@ -54,6 +54,8 @@ export default class Scene3d extends SceneDef {
      * @param {Array<ElementDef>} elements
      */
     _initElements(elements) {
+        
+
         elements.forEach((ele) => {
             let { type } = ele.graph;
 

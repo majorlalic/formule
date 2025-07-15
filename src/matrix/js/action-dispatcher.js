@@ -27,7 +27,7 @@ export class ActionDispatcher {
             [ActionTypes.PopComponent.name]: (ele, action, position) =>
                 this.popComponent(ele, action?.actionOptions?.name, action?.actionOptions?.props, position),
             [ActionTypes.ChangeScene.name]: (ele, action) => this.changeScene(action?.actionOptions?.sceneId),
-            [ActionTypes.ExcuteScript.name]: (ele, action) => this.excuteScript(ele, action?.actionOptions?.url),
+            [ActionTypes.ExecuteScript.name]: (ele, action) => this.executeScript(ele, action?.actionOptions?.url),
             [ActionTypes.ChangeAnchor.name]: (ele, action) => this.changeAnchor(action?.actionOptions?.anchorId),
             [ActionTypes.ChangePosition.name]: (ele, action) =>
                 this.changePosition(ele, action?.actionOptions?.position, action?.actionOptions?.duration),
@@ -145,7 +145,7 @@ export class ActionDispatcher {
      * @param {ElementDef} ele 图元
      * @param {String} scriptName 脚本名称 在const.js中定义
      */
-    excuteScript(ele, url = "") {
+    executeScript(ele, url = "") {
         if (!url) {
             return;
         }

@@ -3,7 +3,7 @@ export const scenes = [
     {
         id: "9832789237491283",
         name: "场景A",
-        type: SceneType.ThreeD,
+        type: SceneType.ThreeD.name,
         conf: {
             position: {
                 camera: {
@@ -215,7 +215,7 @@ export const scenes = [
                         // {
                         //     type: InteractionType.Custom,
                         //     condition: "",
-                        //     actionType: ActionTypes.ExcuteScript.name,
+                        //     actionType: ActionTypes.ExecuteScript.name,
                         //     actionOptions: {
                         //         url: "/matrix/scripts/testScript.js",
                         //     },
@@ -292,7 +292,7 @@ export const scenes = [
     {
         id: "1231235435123123",
         name: "场景B",
-        type: SceneType.ThreeD,
+        type: SceneType.ThreeD.name,
         conf: {
             position: {
                 camera: {
@@ -344,7 +344,7 @@ export const scenes = [
     {
         id: "9871231235",
         name: "2D场景",
-        type: SceneType.TwoD,
+        type: SceneType.TwoD.name,
         conf: {
             background: {
                 url: "/matrix/engine/2d/image/bg.png",
@@ -473,7 +473,7 @@ export const scenes = [
                         {
                             type: InteractionType.Custom,
                             condition: "",
-                            actionType: ActionTypes.ExcuteScript.name,
+                            actionType: ActionTypes.ExecuteScript.name,
                             actionOptions: {
                                 url: "/matrix/scripts/robot.js",
                             },
@@ -636,7 +636,7 @@ export const scenes = [
     {
         id: "9871231235",
         name: "Gis场景",
-        type: SceneType.GiS,
+        type: SceneType.Gis.name,
         conf: {
             // tileLayer: "http://10.11.3.25:8899/788865972/{z}/{x}/{y}",
             center: [43.0367, 88.84643],

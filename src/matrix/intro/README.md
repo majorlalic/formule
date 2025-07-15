@@ -20,7 +20,7 @@
    const scene = {
        id: "1231235435123123",
        name: '场景名称',
-       type: SceneType.ThreeD,
+       type: SceneType.ThreeD.name,
        conf: {
            // 场景配置
        },
@@ -114,7 +114,7 @@
 {
     id: "9832789237491283",
     name: "场景A",    
-    type: SceneType.ThreeD,
+    type: SceneType.ThreeD.name,
     conf: {
 
     },
@@ -659,7 +659,7 @@ ${data.color} == '#2F7CEE'
 
 ---
 
-#### ExcuteScript
+#### ExecuteScript
 
 执行指定脚本, 脚本需在Scripts中声明
 
@@ -719,9 +719,17 @@ ${data.color} == '#2F7CEE'
    // const.js
    // SceneTypes
    export const SceneType = {
-       GiS: "Gis",
-       ThreeD: "ThreeD",
-       TwoD: "TwoD",
+       Gis: {
+        name: "Gis",
+        dir: "gis",
+        supportElementTypes: [
+            ElementType.Point,
+            ElementType.Polyline,
+            ElementType.Polygon,
+            ElementType.Label,
+            ElementType.CirclePoint,
+        ],
+    },
    };
    ```
 

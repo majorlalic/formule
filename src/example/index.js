@@ -3,7 +3,7 @@ import { scenes } from "/matrix/js/mock.js";
 import EventBusWorker from "/common/js/eventBus/eventBusWorker.js";
 import { ModuleNames, EventNames, Colors } from "/matrix/js/const.js";
 import { loadVueComponent } from "/matrix/js/vue-component-loader.js";
-import { InteractionType, PopComponents, ActionTypes, ElementType, SceneType } from "../matrix/js/const.js";
+import { InteractionType, PopComponents, ActionTypes, ElementType } from "../matrix/js/const.js";
 
 const eventBus = EventBusWorker.getInstance(ModuleNames.Scene);
 
