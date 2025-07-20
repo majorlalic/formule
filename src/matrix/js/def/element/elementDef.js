@@ -14,6 +14,10 @@ export class ElementDef {
      */
     name;
     /**
+     * @type {String} 类型
+     */
+    type;
+    /**
      * @type {String} 颜色
      */
     color;

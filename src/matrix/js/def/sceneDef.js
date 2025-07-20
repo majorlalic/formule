@@ -1,8 +1,16 @@
 import { ElementDef } from "./element/elementDef.js";
 import { ElementData } from "./typeDef.js";
 import EventBusWorker from "/common/js/eventBus/eventBusWorker.js";
-import { InteractionType, ModuleNames, EventNames, NameModes, ElementBehaviors } from "../../js/const.js";
+import {
+    InteractionType,
+    ModuleNames,
+    EventNames,
+    NameModes,
+    ElementBehaviors,
+    SceneType,
+} from "../../js/const.js";
 import { checkProps, fillTemplate, hasSameElement } from "../utils.js";
+import { generateUUID } from "/common/js/utils.js";
 
 /**
  * 场景类定义
@@ -38,13 +46,28 @@ export class SceneDef {
     initEventBus() {
         this.eventBus = EventBusWorker.getInstance(ModuleNames.Scene);
         this.eventBus.on(EventNames.InitScene, this.initScene.bind(this));
-        this.eventBus.on(EventNames.EleDataChange, this.setDataBatch.bind(this));
+        this.eventBus.on(
+            EventNames.EleDataChange,
+            this.setDataBatch.bind(this)
+        );
         this.eventBus.on(EventNames.ChangeAnchor, this.changeAnchor.bind(this));
         this.eventBus.on(EventNames.ChangeLayer, this.changeLayer.bind(this));
-        this.eventBus.on(EventNames.RunEleBehavior, this.runEleBehavior.bind(this));
-        this.eventBus.on(EventNames.ChangeEleColor, this.changeEleColor.bind(this));
-        this.eventBus.on(EventNames.ChangePosition, this.changePosition.bind(this));
-        this.eventBus.on(EventNames.ChangeVisible, this.changeVisible.bind(this));
+        this.eventBus.on(
+            EventNames.RunEleBehavior,
+            this.runEleBehavior.bind(this)
+        );
+        this.eventBus.on(
+            EventNames.ChangeEleColor,
+            this.changeEleColor.bind(this)
+        );
+        this.eventBus.on(
+            EventNames.ChangePosition,
+            this.changePosition.bind(this)
+        );
+        this.eventBus.on(
+            EventNames.ChangeVisible,
+            this.changeVisible.bind(this)
+        );
     }
 
     /**
@@ -122,12 +145,17 @@ export class SceneDef {
 
         // 2. 校验图元动作定义
         if (!ElementBehaviors.hasOwnProperty(behaviorName)) {
-            console.log(`图元动作尚未定义${behaviorName}, 请在ElementBehaviors中定义`);
+            console.log(
+                `图元动作尚未定义${behaviorName}, 请在ElementBehaviors中定义`
+            );
             return;
         }
 
         // 3. 查找图元是否定义该行为
-        if (!typeof ele[behaviorName] === "function" || typeof ele[behaviorName] === "undefined") {
+        if (
+            !typeof ele[behaviorName] === "function" ||
+            typeof ele[behaviorName] === "undefined"
+        ) {
             console.log(`当期图元${ele.id}不存在${behaviorName}, 请联系管理员`);
             return;
         }
@@ -136,7 +164,11 @@ export class SceneDef {
 
         // 4. 校验必要参数
         if (!checkProps(behaviorParam, behavior.scheme)) {
-            console.log(`${behaviorName}缺少必须参数, behaviorParam必须包括${behavior.scheme.join(",")}`);
+            console.log(
+                `${behaviorName}缺少必须参数, behaviorParam必须包括${behavior.scheme.join(
+                    ","
+                )}`
+            );
             return;
         }
 
@@ -198,7 +230,10 @@ export class SceneDef {
                 conf: ele.conf,
                 data: ele.data,
             },
-            { clientX: event?.clientX || event?.layerPoint?.x, clientY: event?.clientY || event?.layerPoint?.y } // leaflet的event略有不同
+            {
+                clientX: event?.clientX || event?.layerPoint?.x,
+                clientY: event?.clientY || event?.layerPoint?.y,
+            } // leaflet的event略有不同
         );
     }
 
@@ -215,3 +250,47 @@ export class SceneDef {
         });
     }
 }
+
+/**
+ * 获取新的场景
+ * @param {SceneType.name} type 场景类型
+ * @param {String} name 场景名称
+ */
+export const getNewScene = (type, name) => {
+    let conf = {};
+    //TODO 根据场景类型初始化配置
+    if (type == SceneType.Gis.name) {
+        conf = {
+            center: [43.0367, 88.84643],
+            minZoom: 5,
+            maxZoom: 18,
+            zoom: 9,
+            zoomControl: false,
+            isSite: true,
+        };
+    } else if (type == SceneType.ThreeD.name) {
+        conf = {
+            position: {
+                camera: {
+                    x: 0,
+                    y: 0,
+                    z: 0,
+                },
+                target: {
+                    x: 0,
+                    y: 0,
+                    z: 0,
+                },
+            },
+        };
+    }
+    return {
+        id: generateUUID(10),
+        name,
+        type,
+        conf,
+        elements: [],
+        anchors: [],
+        layers: [],
+    };
+};

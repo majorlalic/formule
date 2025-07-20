@@ -1,6 +1,7 @@
 import { getDeviceCanvas } from "../utils/canvas.js";
 import * as THREE from "three";
 import Element3d from "./element3d.js";
+import { ElementType } from "/matrix/js/const.js";
 
 /**
  * 点

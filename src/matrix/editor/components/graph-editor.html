@@ -1,0 +1,159 @@
+<template>
+    <div class="graph-editor">
+        <div v-for="attr of attrs" v-if="attrs.length > 0">
+            <div class="label">{{attr.label}}:</div>
+            <div class="form">
+                <!-- vector3 -->
+                <div v-if="attr.type == 'vector3'" class="vector3">
+                    <div>
+                        <div>x:</div>
+                        <a-input></a-input>
+                    </div>
+                    <div>
+                        <div>y:</div>
+                        <a-input></a-input>
+                    </div>
+                    <div>
+                        <div>z:</div>
+                        <a-input></a-input>
+                    </div>
+                </div>
+                <!-- vector3-array -->
+                <div v-if="attr.type == 'vector3-array'">
+                    <a-table>
+                        <a-table-column title="x" data-index="x">
+                            <template slot-scope="text, record">
+                                <a-input v-model="record.x"></a-input>
+                            </template>
+                        </a-table-column>
+                        <a-table-column title="y" data-index="y">
+                            <template slot-scope="text, record">
+                                <a-input v-model="record.y"></a-input>
+                            </template>
+                        </a-table-column>
+                        <a-table-column title="z" data-index="z">
+                            <template slot-scope="text, record">
+                                <a-input v-model="record.z"></a-input>
+                            </template>
+                        </a-table-column>
+                    </a-table>
+                </div>
+                <!-- string -->
+                <div v-if="attr.type == 'string'">
+                    <a-input></a-input>
+                </div>
+                <!-- icon -->
+                <a-select
+                    v-if="attr.type == 'icon' && iconOptions.length > 0"
+                    :options="iconOptions"
+                >
+                </a-select>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+    //@ sourceURL=graph-editor.js
+    import { SceneType, ICONS } from "/matrix/js/const.js";
+
+    export default {
+        props: ["sceneType", "eleType"],
+        inject: [],
+        data() {
+            return {
+                attrs: [],
+                iconOptions: [],
+            };
+        },
+        components: {},
+        created() {},
+        mounted() {
+            console.log(this.sceneType);
+            this.initAttrs();
+            this.initIcons();
+        },
+        methods: {
+            initAttrs() {
+                if (
+                    !!!this.sceneType ||
+                    !SceneType.hasOwnProperty(this.sceneType)
+                ) {
+                    this.$message.error(
+                        `尚未配置[${this.sceneType}]类型的场景`
+                    );
+                    return;
+                }
+                if (
+                    !!!this.eleType ||
+                    !SceneType[
+                        this.sceneType
+                    ].supportElementTypes.hasOwnProperty(this.eleType)
+                ) {
+                    this.$message.error(
+                        `${this.sceneType}尚未配置[${this.eleType}]类型的图元`
+                    );
+                    return;
+                }
+                let attrs =
+                    SceneType[this.sceneType].supportElementTypes[this.eleType];
+                this.attrs = attrs;
+                console.log(this.attrs);
+            },
+            initIcons() {
+                this.iconOptions = [];
+                for (let icon of ICONS) {
+                    this.iconOptions.push({
+                        value: icon.value,
+                        label: icon.name,
+                    });
+                }
+                console.log(this.iconOptions);
+            },
+        },
+    };
+</script>
+
+<style lang="less">
+    .graph-editor {
+        display: flex;
+        flex-direction: column;
+        background-color: #f8f8f8;
+        padding-right: 10px;
+        padding-bottom: 10px;
+        border-radius: 4px;
+
+        & > div {
+            display: flex;
+
+            .label {
+                width: 70px;
+                text-align: center;
+            }
+
+            .form {
+                flex: 1;
+
+                .vector3 {
+                    margin-top: 4px;
+                    display: flex;
+                    flex-direction: column;
+                    grid-gap: 4px;
+
+                    & > div {
+                        display: flex;
+
+                        & > div:first-child {
+                            width: 30px;
+                            line-height: 34px;
+                        }
+
+                        & > div:nth-child(2) {
+                            flex: 1;
+                        }
+                    }
+                }
+            }
+        }
+    }
+</style>

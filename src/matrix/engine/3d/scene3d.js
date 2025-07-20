@@ -57,7 +57,7 @@ export default class Scene3d extends SceneDef {
         
 
         elements.forEach((ele) => {
-            let { type } = ele.graph;
+            let type = ele.type;
 
             let target;
             switch (type) {

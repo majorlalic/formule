@@ -135,7 +135,7 @@ export const initFrame = (containerId, scene) => {
     return new Promise((resolve, reject) => {
         let { id, type, conf, elements } = scene;
 
-        if(SceneType[type] == undefined){
+        if (SceneType[type] == undefined) {
             console.error(`未找到场景类型: ${type}`);
             return;
         }
@@ -241,7 +241,9 @@ export const resolveMetaPlaceholders = (ele, data) => {
     for (const [key, value] of ele.meta.entries()) {
         const replaced = value.replace(/\$\{([^}]+)\}/g, (_, expression) => {
             // const result = getValueByPath(data, expression);
-            const result = expression.split(".").reduce((acc, key) => acc?.[key], data);
+            const result = expression
+                .split(".")
+                .reduce((acc, key) => acc?.[key], data);
             return result != null ? result : "";
         });
         // resolved[key] = replaced;
@@ -271,4 +273,39 @@ export const hexToRgba = (hex, alpha) => {
     const g = parseInt(hex.slice(3, 5), 16);
     const b = parseInt(hex.slice(5, 7), 16);
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
+/**
+ * 验证场景配置
+ * @param {SceneDef} scene
+ */
+export const validateScene = (scene) => {
+    return true;
+};
+
+/**
+ * 导出数据为 json 文件
+ * @param {Object} data json 数据
+ * @param {String} filename 文件名
+ */
+export const downloadJson = (data, filename = "data.json") => {
+    // 将对象转换为 JSON 字符串（格式化）
+    const jsonStr = JSON.stringify(data, null, 2);
+
+    // 创建 Blob 对象
+    const blob = new Blob([jsonStr], { type: "application/json" });
+
+    // 创建临时链接
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+
+    // 模拟点击下载
+    document.body.appendChild(a);
+    a.click();
+
+    // 清理
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 };

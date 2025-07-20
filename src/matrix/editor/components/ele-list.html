@@ -1,0 +1,91 @@
+<template>
+    <div class="ele-list">
+        <div
+            v-if="eles.length === 0"
+            v-for="ele of eles"
+            :key="ele.id"
+            @click="selectEle(ele)"
+            :class="{'checked': ele.id === curEle?.id}"
+        >
+            <img :src="'./imgs/'+ ele.type + '.svg'" />
+            <div>{{ele.name}}</div>
+
+            <div>
+                <a-tooltip>
+                    <template slot="title">
+                        {{!ele.lock?'锁定':'解锁'}}
+                    </template>
+                    <a-icon :type="!ele.lock?'lock':'unlock'" />
+                </a-tooltip>
+            </div>
+            <div>
+                <a-tooltip>
+                    <template slot="title">
+                        {{!ele.visible?'显示':'隐藏'}}
+                    </template>
+                    <a-icon :type="!ele.visible?'eye':'eye-invisible'" />
+                </a-tooltip>
+            </div>
+        </div>
+        <a-empty v-else description="暂无图元"></a-empty>
+    </div>
+</template>
+
+<script>
+    //@ sourceURL=color-selector.js
+    import { Colors } from "/matrix/js/const.js";
+
+    export default {
+        props: ["eles", "curEle"],
+        inject: [],
+        data() {
+            return {
+                
+            };
+        },
+        components: {},
+        created() {},
+        mounted() {},
+        methods: {
+            selectEle(ele) {
+                this.$emit("select", ele);
+            },
+        },
+    };
+</script>
+
+<style lang="less">
+    .ele-list {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        padding: 10px 0px;
+        grid-gap: 10px;
+        min-height: 200px;
+
+        & > div {
+            display: flex;
+            align-items: center;
+            grid-gap: 10px;
+            cursor: pointer;
+            padding: 0 10px;
+
+            & > img {
+                width: 30px;
+                height: 30px;
+            }
+
+            & > div:nth-child(2) {
+                flex: 1;
+            }
+
+            & > div:nth-child(n + 3) {
+                font-size: 18px;
+            }
+        }
+
+        & > .checked {
+            background-color: #b2d0fa;
+        }
+    }
+</style>

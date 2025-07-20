@@ -353,10 +353,10 @@ export const copyToClipboard = (text) => {
         });
 };
 
-export const generateUUID = () => {
+export const generateUUID = (length = 32) => {
     const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     let uuid = "";
-    for (let i = 0; i < 32; i++) {
+    for (let i = 0; i < length; i++) {
         uuid += chars[Math.floor(Math.random() * chars.length)];
     }
     return uuid;

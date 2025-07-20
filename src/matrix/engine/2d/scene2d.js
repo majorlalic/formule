@@ -50,8 +50,8 @@ export default class Scene2d extends SceneDef {
      * @param {Object} conf
      */
     _initConf(conf) {
-        let { background } = conf;
-        this._initBackground(background);
+        // let { background } = conf;
+        // this._initBackground(background);
     }
 
     /**
@@ -60,7 +60,7 @@ export default class Scene2d extends SceneDef {
      */
     _initElements(elements) {
         elements.forEach((ele) => {
-            let { type } = ele.graph;
+            let type = ele.type;
 
             let target;
             switch (type) {

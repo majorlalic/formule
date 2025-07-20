@@ -21,7 +21,7 @@ export default class Label extends Element3d {
 
         this.initName();
 
-        this.mesh = this._getMesh(ele.data.value || '');
+        this.mesh = this._getMesh(ele.graph?.value || '');
         this.group.add(this.mesh);
         this.group.position.copy(ele.graph.position);
     }

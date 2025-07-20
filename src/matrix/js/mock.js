@@ -25,8 +25,8 @@ export const scenes = [
                 color: Colors.Normal,
                 visible: true,
                 layer: ["device", "area"],
+                type: ElementType.Point,
                 graph: {
-                    type: ElementType.Point,
                     icon: "camera",
                     position: {
                         x: 5,
@@ -63,8 +63,8 @@ export const scenes = [
                 color: Colors.Normal,
                 visible: true,
                 layer: ["device"],
+                type: ElementType.Point,
                 graph: {
-                    type: ElementType.Point,
                     icon: "building",
                     position: {
                         x: 0,
@@ -93,8 +93,8 @@ export const scenes = [
                 color: Colors.Normal,
                 visible: true,
                 layer: ["area"],
+                type: ElementType.Polyline,
                 graph: {
-                    type: ElementType.Polyline,
                     positions: [
                         {
                             x: 5,
@@ -160,13 +160,14 @@ export const scenes = [
                 color: Colors.Normal,
                 visible: true,
                 layer: ["device"],
+                type: ElementType.Label,
                 graph: {
-                    type: ElementType.Label,
                     position: {
                         x: 5,
                         y: 5,
                         z: 0,
                     },
+                    value: "${data.value}",
                 },
                 data: {
                     value: "${dataPoint1}",
@@ -185,19 +186,6 @@ export const scenes = [
                                     bussinessType: "",
                                 },
                                 theme: "default",
-                            },
-                        },
-                        {
-                            type: InteractionType.Custom,
-                            condition: "${data.value} == 2",
-                            actionType: ActionTypes.ChangePosition.name,
-                            actionOptions: {
-                                position: {
-                                    x: 0,
-                                    y: 1,
-                                    z: 0,
-                                },
-                                duration: 1,
                             },
                         },
                         {
@@ -228,8 +216,8 @@ export const scenes = [
             //     name: "理工光科模型",
             //     color: '#2F7CEE',
             //     visible: true,
-            //     graph: {
             //         type: ElementType.Modal,
+            //     graph: {
             //         path: "./modal/LGGK/LGGK.dae",
             //         position: {
             //             x: 1,
@@ -310,11 +298,11 @@ export const scenes = [
         elements: [
             {
                 id: "9871273612873",
-                name: "切换场景A-${data.value}",
+                name: "切换场景A",
                 color: Colors.Normal,
                 visible: true,
+                type: ElementType.Point,
                 graph: {
-                    type: ElementType.Point,
                     icon: "building",
                     position: {
                         x: 5,
@@ -362,8 +350,8 @@ export const scenes = [
                 visible: true,
                 layer: [],
                 zIndex: 3,
+                type: ElementType.Point,
                 graph: {
-                    type: ElementType.Point,
                     icon: "camera",
                     position: {
                         x: 200,
@@ -410,30 +398,30 @@ export const scenes = [
                     ],
                 },
             },
-            // {
-            //     id: "5123123523",
-            //     name: "背景图片",
-            //     color: Colors.Normal,
-            //     visible: true,
-            //     layer: [],
-            //     zIndex: 4,
-            //     graph: {
-            //         type: ElementType.Picture,
-            //         x: 410,
-            //         y: 100,
-            //         url: "/matrix/engine/2d/image/bg.png",
-            //         width: 200,
-            //         height: 100,
-            //     },
-            //     data: {
-            //         bussinessId: "19824718923",
-            //         bussinessType: "camera",
-            //     },
-            //     conf: {
-            //         nameMode: NameModes.Permanent,
-            //         trigger: [],
-            //     },
-            // },
+            {
+                id: "5123123523",
+                name: "背景图片",
+                color: Colors.Normal,
+                visible: true,
+                layer: [],
+                zIndex: 4,
+                type: ElementType.Picture,
+                graph: {
+                    url: "/matrix/engine/2d/image/bg.png",
+                    width: 1075,
+                    height: 653,
+                    x: 422.5,
+                    y: 128.5,
+                },
+                data: {
+                    bussinessId: "19824718923",
+                    bussinessType: "camera",
+                },
+                conf: {
+                    nameMode: NameModes.Permanent,
+                    trigger: [],
+                },
+            },
             {
                 id: "512116351141232",
                 name: "巡检机器人",
@@ -441,8 +429,8 @@ export const scenes = [
                 visible: true,
                 layer: [],
                 zIndex: 4,
+                type: ElementType.PointLine,
                 graph: {
-                    type: ElementType.PointLine,
                     line: [
                         {
                             x: 1250,
@@ -488,8 +476,8 @@ export const scenes = [
                 visible: true,
                 layer: [],
                 zIndex: 4,
+                type: ElementType.Polyline,
                 graph: {
-                    type: ElementType.Polyline,
                     positions: [
                         {
                             x: 800,
@@ -525,8 +513,8 @@ export const scenes = [
                 visible: true,
                 layer: [],
                 zIndex: 4,
+                type: ElementType.Polyline,
                 graph: {
-                    type: ElementType.Polyline,
                     positions: [
                         {
                             x: 800,
@@ -562,8 +550,8 @@ export const scenes = [
                 visible: true,
                 layer: [],
                 zIndex: 4,
+                type: ElementType.Polygon,
                 graph: {
-                    type: ElementType.Polygon,
                     positions: [
                         {
                             x: 500,
@@ -599,8 +587,8 @@ export const scenes = [
                 visible: true,
                 layer: [],
                 zIndex: 4,
+                type: ElementType.Label,
                 graph: {
-                    type: ElementType.Label,
                     position: {
                         x: 422.5,
                         y: 228.5,
@@ -654,8 +642,8 @@ export const scenes = [
                 visible: true,
                 layer: [],
                 zIndex: 3,
+                type: ElementType.Point,
                 graph: {
-                    type: ElementType.Point,
                     icon: "uav",
                     position: {
                         lat: 43.37311218382002,
@@ -687,8 +675,8 @@ export const scenes = [
                 visible: true,
                 layer: [],
                 zIndex: 3,
+                type: ElementType.CirclePoint,
                 graph: {
-                    type: ElementType.CirclePoint,
                     icon: "radar",
                     position: {
                         lat: 42.76516228327469,
@@ -718,8 +706,8 @@ export const scenes = [
                 visible: true,
                 layer: [],
                 zIndex: 3,
+                type: ElementType.Polyline,
                 graph: {
-                    type: ElementType.Polyline,
                     positions: [
                         [43.37710501700073, 88.41796875000001],
                         [43.16512263158296, 88.95904541015625],
@@ -740,8 +728,8 @@ export const scenes = [
                 visible: true,
                 layer: [],
                 zIndex: 3,
+                type: ElementType.Polygon,
                 graph: {
-                    type: ElementType.Polygon,
                     positions: [
                         [42.982548873720326, 88.25592041015626],
                         [42.91620643817353, 89.27490234375001],
@@ -762,8 +750,8 @@ export const scenes = [
                 visible: true,
                 layer: [],
                 zIndex: 3,
+                type: ElementType.Label,
                 graph: {
-                    type: ElementType.Label,
                     position: {
                         lat: 42.563195832927384,
                         lng: 89.7857666015625,
