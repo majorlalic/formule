@@ -1,0 +1,191 @@
+<template>
+    <a-modal
+        class="positions-editor"
+        title="编辑坐标"
+        ok-text="确认"
+        cancel-text="返回"
+        :visible="visible"
+        @ok="handleOk"
+        @cancel="handleCancel"
+        width="700px"
+    >
+        <a-button style="margin-bottom: 10px" type="primary" @click="add">新增</a-button>
+        <a-button style="margin-bottom: 10px" type="primary" @click="importJSON">导入JSON</a-button>
+
+        <a-table row-key="id" :columns="columns" :data-source="datas" :pagination="false">
+            <span slot="x" slot-scope="text, record">
+                <a-input-number v-model="record.x"></a-input-number>
+            </span>
+            <span slot="y" slot-scope="text, record">
+                <a-input-number v-model="record.y"></a-input-number>
+            </span>
+            <span slot="z" slot-scope="text, record">
+                <a-input-number v-model="record.z"></a-input-number>
+            </span>
+            <span slot="lat" slot-scope="text, record">
+                <a-input-number v-model="record.lat"></a-input-number>
+            </span>
+            <span slot="lng" slot-scope="text, record">
+                <a-input-number v-model="record.lng"></a-input-number>
+            </span>
+            <span slot="action" slot-scope="text, record">
+                <a-icon
+                    type="delete"
+                    @click="remove(record.id)"
+                    style="font-size: 18px; color: #1890ff; cursor: pointer"
+                ></a-icon>
+            </span>
+        </a-table>
+    </a-modal>
+</template>
+
+<script>
+    //@ sourceURL=positions-editor.js
+    import { generateUUID } from "/common/js/utils.js";
+
+    export default {
+        props: ["list", "type"],
+        inject: [],
+        data() {
+            return {
+                columns: [],
+                visible: true,
+                datas: [],
+            };
+        },
+        components: {},
+        created() {},
+        mounted() {
+            console.log(this.list);
+
+            let arr = [...this.list];
+            arr.map((i) => (i.id = generateUUID(8)));
+            this.datas = arr;
+
+            this.initColumns(this.type);
+        },
+        methods: {
+            importJSON() {
+                //TODO 弹窗输入json并校验, 生成列表
+            },
+            remove(id) {
+                let index = this.datas.findIndex((i) => i.id == id);
+                this.datas.splice(index, 1);
+            },
+            add() {
+                if (this.type == "vector3-array") {
+                    this.datas.push({
+                        id: generateUUID(8),
+                        x: 0,
+                        y: 0,
+                        z: 0,
+                    });
+                } else if (this.type == "vector2-array") {
+                    this.datas.push({
+                        id: generateUUID(8),
+                        x: 0,
+                        y: 0,
+                    });
+                } else if (this.type == "latlng-array") {
+                    this.datas.push({
+                        id: generateUUID(8),
+                        lat: 0,
+                        lng: 0,
+                    });
+                }
+            },
+            initColumns(type) {
+                if (this.type == "vector3-array") {
+                    this.columns = [
+                        {
+                            title: "x",
+                            dataIndex: "x",
+                            align: "center",
+                            scopedSlots: { customRender: "x" },
+                        },
+                        {
+                            title: "y",
+                            dataIndex: "y",
+                            align: "center",
+                            scopedSlots: { customRender: "y" },
+                        },
+                        {
+                            title: "z",
+                            dataIndex: "z",
+                            align: "center",
+                            scopedSlots: { customRender: "z" },
+                        },
+                    ];
+                } else if (this.type == "vector2-array") {
+                    this.columns = [
+                        {
+                            title: "x",
+                            dataIndex: "x",
+                            align: "center",
+                            scopedSlots: { customRender: "x" },
+                        },
+                        {
+                            title: "y",
+                            dataIndex: "y",
+                            align: "center",
+                            scopedSlots: { customRender: "y" },
+                        },
+                    ];
+                } else if (this.type == "latlng-array") {
+                    this.columns = [
+                        {
+                            title: "lat",
+                            dataIndex: "lat",
+                            align: "center",
+                            scopedSlots: { customRender: "lat" },
+                        },
+                        {
+                            title: "lng",
+                            dataIndex: "lng",
+                            align: "center",
+                            scopedSlots: { customRender: "lng" },
+                        },
+                    ];
+                }
+
+                this.columns.push({
+                    title: "操作",
+                    dataIndex: "action",
+                    align: "center",
+                    key: "action",
+                    width: "60px",
+                    scopedSlots: { customRender: "action" },
+                });
+            },
+            handleOk() {
+                this.datas.map((i) => delete i.id);
+                this.$emit("confirm", this.datas);
+                this.visible = false;
+            },
+            handleCancel() {
+                this.visible = false;
+            },
+        },
+    };
+</script>
+
+<style lang="less">
+    .positions-editor {
+        .ant-table .ant-table-tbody > tr > td {
+            padding: 10px 10px !important;
+
+            .ant-input-number {
+                width: 100%;
+            }
+        }
+
+        .ant-table td {
+            white-space: nowrap;
+        }
+
+        .ant-table-body {
+            max-height: 400px !important;
+            overflow-y: auto !important;
+        }
+    }
+</style>

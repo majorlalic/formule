@@ -34,10 +34,10 @@ export default class PointLine extends Element2d {
     async init(ele) {
         super.init();
 
-        this.line = this._getMesh(ele.graph.line);
+        this.line = this._getMesh(ele.graph.positions);
         this.group.add(this.line);
 
-        let pointPosition = this._getPointAtPercent(this.line, ele.graph.position);
+        let pointPosition = this._getPointAtPercent(this.line, ele.graph.percent);
 
         // 图标
         this.point = await this._getPoint(ele.graph.icon, pointPosition);

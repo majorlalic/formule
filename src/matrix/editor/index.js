@@ -1,28 +1,21 @@
 import { loadVueComponent } from "/matrix/js/vue-component-loader.js";
-import {
-    ModuleNames,
-    EventNames,
-    InteractionType,
-    SceneType,
-} from "../js/const.js";
+import { ModuleNames, EventNames, InteractionType, SceneType, ActionTypes } from "../js/const.js";
 import EventBusWorker from "/common/js/eventBus/eventBusWorker.js";
 import { getNewScene, SceneDef } from "../js/def/sceneDef.js";
 import { ElementDef } from "../js/def/element/elementDef.js";
 import { Action, ElementData } from "../js/def/typeDef.js";
-import {
-    collectPlaceholders,
-    setData,
-    initFrame,
-    deepClone,
-    validateScene,
-    downloadJson,
-} from "../js/utils.js";
-import { SCENE } from "./scene1.js";
+import { collectPlaceholders, setData, initFrame, deepClone, validateScene, downloadJson } from "../js/utils.js";
+import { SCENE3D } from "./3d.js";
+import { SCENE2D } from "./2d.js";
+import { SCENEGIS } from "./gis.js";
 import { mountComponent } from "../js/vue-component-loader.js";
+import { ActionDispatcher } from "../js/action-dispatcher.js";
 
 const eventBus = EventBusWorker.getInstance(ModuleNames.Editor);
 // 图元id映射
 let eleMap;
+// 动作分发器
+let actionDispatcher;
 
 Vue.use(antd);
 var app = new Vue({
@@ -34,41 +27,7 @@ var app = new Vue({
     },
     data: {
         scene: {},
-        curEle: {
-            id: "",
-            name: "",
-            type: "Polyline",
-            color: "#FFFFFF",
-            zIndex: "",
-            graph: {},
-        },
-        types: [
-            {
-                key: "Point",
-                label: "点",
-            },
-            {
-                key: "Polyline",
-                label: "线",
-            },
-            {
-                key: "Polygon",
-                label: "面",
-            },
-            {
-                key: "Modal",
-                label: "模型",
-            },
-            {
-                key: "Label",
-                label: "文本",
-            },
-            {
-                key: "Picture",
-                label: "图片",
-            },
-        ],
-        eles: [],
+        curEle: null,
 
         createType: "",
 
@@ -80,22 +39,23 @@ var app = new Vue({
         },
     },
     components: {
-        "ele-type": () =>
-            loadVueComponent("/matrix/editor/components/ele-type.html"),
-        "color-selector": () =>
-            loadVueComponent("/matrix/editor/components/color-selector.html"),
-        "graph-editor": () =>
-            loadVueComponent("/matrix/editor/components/graph-editor.html"),
+        "ele-type": () => loadVueComponent("/matrix/editor/components/ele-type.html"),
+        "ele-list": () => loadVueComponent("/matrix/editor/components/ele-list.html"),
+        "color-selector": () => loadVueComponent("/matrix/editor/components/color-selector.html"),
+        "graph-editor": () => loadVueComponent("/matrix/editor/components/graph-editor.html"),
     },
     created: function () {},
     mounted: function () {
-        this.scene = SCENE;
+        this.scene = SCENE3D;
 
         // 初始化场景
         this.initScene(this.scene);
 
         // 订阅事件
         this._initEvent();
+
+        // 初始化动作处理器
+        actionDispatcher = new ActionDispatcher(eventBus);
 
         Object.keys(SceneType).forEach((key) => {
             this.sceneTypes.push({
@@ -105,6 +65,7 @@ var app = new Vue({
             });
         });
     },
+    computed: {},
     methods: {
         /**
          * 打开创建场景对话框
@@ -152,28 +113,16 @@ var app = new Vue({
          */
         initScene(scene) {
             let cloneScene = deepClone(scene);
-            initFrame("scene", cloneScene).then(
-                ({ id, type, conf, elements }) => {
-                    eventBus.postMessage(EventNames.InitScene, conf, elements);
-                    eleMap = new Map();
-                    elements.forEach((ele) => {
-                        eleMap.set(ele.id, ele);
-                    });
+            initFrame("scene", cloneScene).then(({ id, type, conf, elements }) => {
+                eventBus.postMessage(EventNames.InitScene, conf, elements);
+                eleMap = new Map();
+                elements.forEach((ele) => {
+                    eleMap.set(ele.id, ele);
+                });
 
-                    // 重置图元列表
-                    this.eles = elements.map((ele) => {
-                        return {
-                            id: ele.id,
-                            name: ele.name,
-                            type: ele.type,
-                            visible: ele.visible,
-                            lock: false,
-                        };
-                    });
-                    // 重置当前选中图元
-                    this.curEle = null;
-                }
-            );
+                // 重置当前选中图元
+                this.curEle = null;
+            });
         },
         /**
          * 订阅事件
@@ -188,53 +137,84 @@ var app = new Vue({
 
             this.initFileEvent();
         },
+        /**
+         * 初始化文件上传事件
+         */
         initFileEvent() {
-            document
-                .getElementById("jsonFileInput")
-                .addEventListener("change", (event) => {
-                    const file = event.target.files[0];
-                    if (!file) return;
+            document.getElementById("jsonFileInput").addEventListener("change", (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
 
-                    const reader = new FileReader();
+                const reader = new FileReader();
 
-                    reader.onload = (e) => {
-                        try {
-                            const jsonString = e.target.result;
-                            const jsonObj = JSON.parse(jsonString);
-                            if (validateScene(jsonObj)) {
-                                this.scene = jsonObj;
-                                this.initScene(jsonObj);
-                            }
-                        } catch (err) {
-                            console.error("JSON 解析失败:", err);
+                reader.onload = (e) => {
+                    try {
+                        const jsonString = e.target.result;
+                        const jsonObj = JSON.parse(jsonString);
+                        if (validateScene(jsonObj)) {
+                            this.scene = jsonObj;
+                            this.initScene(jsonObj);
                         }
-                    };
+                    } catch (err) {
+                        console.error("JSON 解析失败:", err);
+                    }
+                };
 
-                    reader.onerror = (err) => {
-                        console.error("文件读取失败:", err);
-                    };
+                reader.onerror = (err) => {
+                    console.error("文件读取失败:", err);
+                };
 
-                    reader.readAsText(file);
-                });
+                reader.readAsText(file);
+            });
         },
         createEle() {},
+        getEleById(id) {
+            let target = this.scene.elements.find((item) => item.id == id);
+            if (!target) {
+                this.$message.error(`找不到id为${id}的图元, 请联系管理员`);
+                return;
+            }
+            return target;
+        },
         /**
          * 选中图元
          * @param {ElementDef} ele
          */
         selectEle(ele) {
-            let target = this.scene.elements.find((item) => item.id === ele.id);
-            if (!target) {
-                return;
-            }
+            let target = this.getEleById(ele.id);
+
             this.curEle = target;
         },
+        /**
+         * 修改图元可见性
+         * @param {ElementDef} ele
+         * @param {Boolean} visible
+         */
+        changeEleVisible(ele, visible) {
+            let target = this.getEleById(ele.id);
+            target.visible = visible;
+            actionDispatcher.dispatch(target, {
+                actionType: ActionTypes.ChangeVisible.name,
+                actionOptions: {
+                    visible,
+                },
+            });
+        },
+        /**
+         * 导入场景
+         */
         importScene() {
             document.getElementById("jsonFileInput").click();
         },
+        /**
+         * 导出当前场景
+         */
         exportScene() {
             if (this.scene) {
+                this.$message.info("场景配置正在导出, 请查看下载文件");
                 downloadJson(this.scene, `${this.scene?.name || "data"}.json`);
+            } else {
+                this.$message.warn("暂无场景");
             }
         },
     },

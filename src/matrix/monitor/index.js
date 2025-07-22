@@ -3,7 +3,7 @@ import EventBusWorker from "/common/js/eventBus/eventBusWorker.js";
 import { SceneDef } from "../js/def/sceneDef.js";
 import { ElementDef } from "../js/def/element/elementDef.js";
 import { Action, ElementData } from "../js/def/typeDef.js";
-import { collectPlaceholders, setData, satisfyCondition, checkProps, fillTemplate } from "../js/utils.js";
+import { collectPlaceholders, setData, checkProps, fillTemplate } from "../js/utils.js";
 import { isJSON } from "/common/js/utils.js";
 
 const LOG_MAX_COUNT = 1000;
@@ -288,10 +288,7 @@ var app = new Vue({
                 // 处理自定义事件
                 let actions = ele?.conf?.trigger.filter((i) => i?.type == InteractionType.Custom) || [];
                 actions.forEach((action) => {
-                    // 满足条件
-                    if (satisfyCondition(action.condition, ele)) {
-                        this.logAction(ele, action);
-                    }
+                    this.logAction(ele, action);
                 });
             });
         },

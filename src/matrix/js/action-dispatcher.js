@@ -1,5 +1,5 @@
 import { ActionTypes, PopComponents, EventNames } from "./const.js";
-import { checkProps, fillTemplate, satisfyCondition } from "./utils.js";
+import { checkProps, fillTemplate } from "./utils.js";
 import { mountComponent } from "/matrix/js/vue-component-loader.js";
 import { ElementDef } from "./def/element/elementDef.js";
 import { Action } from "./def/typeDef.js";
@@ -17,7 +17,8 @@ export class ActionDispatcher {
      * 初始化构造
      * @param {Resolver} resolver 解释器
      */
-    constructor(resolver) {
+    constructor(eventBus, resolver) {
+        this.eventBus = eventBus;
         this.resolver = resolver;
 
         // 如需新增动作处理逻辑, 请在此添加
@@ -60,12 +61,7 @@ export class ActionDispatcher {
             return;
         }
 
-        // 2. 校验控制脚本
-        if (!satisfyCondition(action.condition, ele)) {
-            return;
-        }
-
-        // 3. 执行动作
+        // 2. 执行动作
         const handler = this.handlers[action.actionType];
         if (handler) {
             handler(ele, action, position);
@@ -170,6 +166,10 @@ export class ActionDispatcher {
      * @param {String} sceneId 场景id
      */
     changeScene(sceneId = "") {
+        if (!this.resolver) {
+            this.$message.error("缺少resolver对象");
+            return;
+        }
         visualApi.getSceneById(sceneId).then((scene) => {
             this.resolver.initScene(scene);
         });
@@ -187,7 +187,7 @@ export class ActionDispatcher {
         }
         let anchor = anchors.find((i) => i.id == anchorId);
         if (anchor) {
-            this.resolver.eventBus.postMessage(EventNames.ChangeAnchor, anchor);
+            this.eventBus.postMessage(EventNames.ChangeAnchor, anchor);
         }
     }
 
@@ -198,7 +198,7 @@ export class ActionDispatcher {
      * @param {Number} duration 时间
      */
     changePosition(ele, position, duration = 0) {
-        this.resolver.eventBus.postMessage(EventNames.ChangePosition, ele.id, position, duration);
+        this.eventBus.postMessage(EventNames.ChangePosition, ele.id, position, duration);
     }
 
     /**
@@ -207,7 +207,7 @@ export class ActionDispatcher {
      * @param {Boolean} visible 是否可见
      */
     changeVisible(ele, visible) {
-        this.resolver.eventBus.postMessage(EventNames.ChangeVisible, ele.id, visible);
+        this.eventBus.postMessage(EventNames.ChangeVisible, ele.id, visible);
     }
 
     /**
@@ -216,7 +216,7 @@ export class ActionDispatcher {
      * @param {String} color 颜色
      */
     changeColor(ele, color = "") {
-        this.resolver.eventBus.postMessage(EventNames.ChangeEleColor, ele.id, color);
+        this.eventBus.postMessage(EventNames.ChangeEleColor, ele.id, color);
     }
 
     /**
@@ -226,6 +226,6 @@ export class ActionDispatcher {
      * @param {Object} behaviorParam 行为参数
      */
     runEleBehavior(ele, behaviorName, behaviorParam) {
-        this.resolver.eventBus.postMessage(EventNames.RunEleBehavior, ele.id, behaviorName, behaviorParam);
+        this.eventBus.postMessage(EventNames.RunEleBehavior, ele.id, behaviorName, behaviorParam);
     }
 }

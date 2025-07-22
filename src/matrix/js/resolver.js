@@ -40,7 +40,7 @@ export default class Resolver {
         // 订阅事件
         this._initEvent();
         // 初始化动作处理器
-        actionDispatcher = new ActionDispatcher(this);
+        actionDispatcher = new ActionDispatcher(this, eventBus);
     }
 
     /**

@@ -60,38 +60,6 @@ export const setValueByPath = (obj, path, value) => {
 };
 
 /**
- * 判断是否满足条件
- * @param {String} condition
- * @param {ElementDef} ele
- * @returns {Boolean}
- */
-export const satisfyCondition = (condition, ele) => {
-    if (condition == "") {
-        return true;
-    }
-    const replaced = condition.replace(/\$\{([^}]+)\}/g, (_, path) => {
-        try {
-            const value = path
-                .trim()
-                .split(".")
-                .reduce((obj, key) => obj?.[key], ele);
-            return JSON.stringify(value); // 安全地转为 JS 字面值
-        } catch (e) {
-            return "undefined"; // 若路径错误，返回 undefined
-        }
-    });
-
-    try {
-        const res = new Function(`return (${replaced});`)();
-        // console.log(`原表达式: ${condition}, 替换后: ${replaced}, 结果: ${res}`);
-        return res;
-    } catch (e) {
-        console.error("表达式解析出错:", e);
-        return false;
-    }
-};
-
-/**
  * 检查propObj是否包含requireArr定义的属性
  * @param {Object} propObj
  * @param {Array<String>} requireArr

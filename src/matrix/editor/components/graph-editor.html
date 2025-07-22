@@ -7,47 +7,63 @@
                 <div v-if="attr.type == 'vector3'" class="vector3">
                     <div>
                         <div>x:</div>
-                        <a-input></a-input>
+                        <a-input-number v-model="graph.position.x"></a-input-number>
                     </div>
                     <div>
                         <div>y:</div>
-                        <a-input></a-input>
+                        <a-input-number v-model="graph.position.y"></a-input-number>
                     </div>
                     <div>
                         <div>z:</div>
-                        <a-input></a-input>
+                        <a-input-number v-model="graph.position.z"></a-input-number>
                     </div>
                 </div>
-                <!-- vector3-array -->
-                <div v-if="attr.type == 'vector3-array'">
-                    <a-table>
-                        <a-table-column title="x" data-index="x">
-                            <template slot-scope="text, record">
-                                <a-input v-model="record.x"></a-input>
-                            </template>
-                        </a-table-column>
-                        <a-table-column title="y" data-index="y">
-                            <template slot-scope="text, record">
-                                <a-input v-model="record.y"></a-input>
-                            </template>
-                        </a-table-column>
-                        <a-table-column title="z" data-index="z">
-                            <template slot-scope="text, record">
-                                <a-input v-model="record.z"></a-input>
-                            </template>
-                        </a-table-column>
-                    </a-table>
+                <!-- vector2 -->
+                <div v-if="attr.type == 'vector2'" class="vector3">
+                    <div>
+                        <div>x:</div>
+                        <a-input-number v-model="graph.position.x"></a-input-number>
+                    </div>
+                    <div>
+                        <div>y:</div>
+                        <a-input-number v-model="graph.position.y"></a-input-number>
+                    </div>
+                </div>
+                <!-- latlng -->
+                <div v-if="attr.type == 'latlng'" class="vector3">
+                    <div>
+                        <div>lat:</div>
+                        <a-input-number v-model="graph.position.lat"></a-input-number>
+                    </div>
+                    <div>
+                        <div>lng:</div>
+                        <a-input-number v-model="graph.position.lng"></a-input-number>
+                    </div>
                 </div>
                 <!-- string -->
-                <div v-if="attr.type == 'string'">
-                    <a-input></a-input>
+                <div v-else-if="attr.type == 'string'">
+                    <a-input v-model="graph[attr.field]"></a-input>
+                </div>
+                <!-- number -->
+                <div v-else-if="attr.type == 'number'">
+                    <a-input-number v-model="graph[attr.field]"></a-input-number>
                 </div>
                 <!-- icon -->
-                <a-select
-                    v-if="attr.type == 'icon' && iconOptions.length > 0"
-                    :options="iconOptions"
-                >
-                </a-select>
+                <div v-else-if="attr.type == 'icon' && iconOptions.length> 0">
+                    <a-select v-model="graph[attr.field]" :options="iconOptions"> </a-select>
+                </div>
+                <!-- vector3-array -->
+                <div v-else-if="attr.type == 'vector3-array'">
+                    <a-button type="primary" icon="edit" shape="round" @click="editPositions(attr.type)">编辑</a-button>
+                </div>
+                <!-- latlng-array -->
+                <div v-else-if="attr.type == 'latlng-array'">
+                    <a-button type="primary" icon="edit" shape="round" @click="editPositions(attr.type)">编辑</a-button>
+                </div>
+                <!-- vector2-array -->
+                <div v-else-if="attr.type == 'vector2-array'">
+                    <a-button type="primary" icon="edit" shape="round" @click="editPositions(attr.type)">编辑</a-button>
+                </div>
             </div>
         </div>
     </div>
@@ -56,9 +72,10 @@
 <script>
     //@ sourceURL=graph-editor.js
     import { SceneType, ICONS } from "/matrix/js/const.js";
+    import { mountComponent } from "/matrix/js/vue-component-loader.js";
 
     export default {
-        props: ["sceneType", "eleType"],
+        props: ["sceneType", "eleType", "graph"],
         inject: [],
         data() {
             return {
@@ -68,35 +85,47 @@
         },
         components: {},
         created() {},
+        watch: {
+            eleType: {
+                handler(newVal, oldVal) {
+                    this.initAttrs();
+                },
+                immediate: true,
+                deep: true,
+            },
+        },
         mounted() {
-            console.log(this.sceneType);
             this.initAttrs();
             this.initIcons();
         },
         methods: {
+            editPositions(type) {
+                let _this = this;
+                mountComponent(
+                    "/matrix/editor/components/positions-editor.html",
+                    {
+                        list: this.graph.positions,
+                        type,
+                    },
+                    {
+                        confirm(list) {
+                            _this.graph.positions = list;
+                            debugger;
+                            // TODO emit到上级
+                        },
+                    }
+                );
+            },
             initAttrs() {
-                if (
-                    !!!this.sceneType ||
-                    !SceneType.hasOwnProperty(this.sceneType)
-                ) {
-                    this.$message.error(
-                        `尚未配置[${this.sceneType}]类型的场景`
-                    );
+                if (!!!this.sceneType || !SceneType.hasOwnProperty(this.sceneType)) {
+                    this.$message.error(`尚未配置[${this.sceneType}]类型的场景`);
                     return;
                 }
-                if (
-                    !!!this.eleType ||
-                    !SceneType[
-                        this.sceneType
-                    ].supportElementTypes.hasOwnProperty(this.eleType)
-                ) {
-                    this.$message.error(
-                        `${this.sceneType}尚未配置[${this.eleType}]类型的图元`
-                    );
+                if (!!!this.eleType || !SceneType[this.sceneType].supportElementTypes.hasOwnProperty(this.eleType)) {
+                    this.$message.error(`${this.sceneType}尚未配置[${this.eleType}]类型的图元`);
                     return;
                 }
-                let attrs =
-                    SceneType[this.sceneType].supportElementTypes[this.eleType];
+                let attrs = SceneType[this.sceneType].supportElementTypes[this.eleType];
                 this.attrs = attrs;
                 console.log(this.attrs);
             },
@@ -119,9 +148,12 @@
         display: flex;
         flex-direction: column;
         background-color: #f8f8f8;
-        padding-right: 10px;
-        padding-bottom: 10px;
+        padding: 10px 10px 10px 0;
         border-radius: 4px;
+
+        .ant-input-number, .ant-input{
+            width: 100%!important;
+        }
 
         & > div {
             display: flex;

@@ -79,21 +79,30 @@ export async function loadVueComponent(url) {
  * 通过组件文件路径在页面挂载
  * @param {String} url 组件文件路径
  * @param {Object} propsData 组件属性
+ * @param {Object} listeners 事件监听
  */
-export const mountComponent = async (url, propsData = {}) => {
+export const mountComponent = async (url, propsData = {}, listeners = {}) => {
     const container = document.createElement("div");
     document.body.appendChild(container);
 
     const comp = await loadVueComponent(url);
     const CompClass = Vue.extend(comp);
 
-    let attr = {
+    const attr = {
         propsData,
     };
-    // 挂载到根实例上, 获取根实例中privode的属性
-    if (app) {
+    if (window.app) {
         attr.parent = app;
     }
+
     const instance = new CompClass(attr);
+
+    // 绑定外部事件监听器
+    for (const [event, handler] of Object.entries(listeners)) {
+        instance.$on(event, handler);
+    }
+
     instance.$mount(container);
+
+    return instance; // 可选：返回实例以供后续操作
 };

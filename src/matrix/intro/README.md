@@ -47,7 +47,6 @@
                    showName: true,
                    {
                        type: InteractionType.Click,
-                       condition: "",
                        actionType: ActionTypes.PopComponent.name,
                        actionOptions: {
                            name: "live-camera",
@@ -499,7 +498,7 @@
 自定义属性
 
 - 可使用嵌套结构
-- 在此声明的属性可在图元其他属性中引用, 当前支持`name`, `color`, `visible`, `conf.trigger.condition` 
+- 在此声明的属性可在图元其他属性中引用, 当前支持`name`, `color`, `visible` 
 
 ```
 {
@@ -537,20 +536,6 @@
 事件类型
 
 ---
-
-###### condition
-
-`string` = ''
-
-- 动作执行前置脚本, 返回true时才会执行动作
-
-- 字符串脚本执行需返回true|false
-- 可引用data中声明的属性
-
-```javascript
-// 示例
-${data.color} == '#2F7CEE'
-```
 
 ---
 

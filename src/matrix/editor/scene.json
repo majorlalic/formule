@@ -44,7 +44,7 @@
                 "trigger": [
                     {
                         "type": "Click",
-                        "condition": "",
+                        
                         "actionType": "PopComponent",
                         "actionOptions": {
                             "name": "live-camera",
@@ -81,7 +81,7 @@
                 "trigger": [
                     {
                         "type": "Click",
-                        "condition": "",
+                        
                         "actionType": "ChangeScene",
                         "actionOptions": {
                             "sceneId": "1231235435123123"
@@ -138,7 +138,7 @@
                 "trigger": [
                     {
                         "type": "Click",
-                        "condition": "",
+                        
                         "actionType": "RunEleBehavior",
                         "actionOptions": {
                             "behaviorName": "changeVisible",
@@ -175,7 +175,7 @@
                 "trigger": [
                     {
                         "type": "Click",
-                        "condition": "",
+                        
                         "actionType": "PopComponent",
                         "actionOptions": {
                             "name": "line-chart",
@@ -188,7 +188,7 @@
                     },
                     {
                         "type": "Custom",
-                        "condition": "",
+                        
                         "actionType": "RunEleBehavior",
                         "actionOptions": {
                             "behaviorName": "changeValue",

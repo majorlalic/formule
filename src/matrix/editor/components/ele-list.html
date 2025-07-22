@@ -1,30 +1,17 @@
 <template>
     <div class="ele-list">
         <div
-            v-if="eles.length === 0"
-            v-for="ele of eles"
+            v-if="list.length != 0"
+            v-for="ele of list"
             :key="ele.id"
             @click="selectEle(ele)"
-            :class="{'checked': ele.id === curEle?.id}"
+            :class="{'checked': ele.id == curEle?.id}"
         >
             <img :src="'./imgs/'+ ele.type + '.svg'" />
             <div>{{ele.name}}</div>
 
             <div>
-                <a-tooltip>
-                    <template slot="title">
-                        {{!ele.lock?'锁定':'解锁'}}
-                    </template>
-                    <a-icon :type="!ele.lock?'lock':'unlock'" />
-                </a-tooltip>
-            </div>
-            <div>
-                <a-tooltip>
-                    <template slot="title">
-                        {{!ele.visible?'显示':'隐藏'}}
-                    </template>
-                    <a-icon :type="!ele.visible?'eye':'eye-invisible'" />
-                </a-tooltip>
+                <a-icon :type="!ele.visible?'eye':'eye-invisible'" @click="changeEleVisible(ele)" />
             </div>
         </div>
         <a-empty v-else description="暂无图元"></a-empty>
@@ -32,23 +19,45 @@
 </template>
 
 <script>
-    //@ sourceURL=color-selector.js
-    import { Colors } from "/matrix/js/const.js";
-
+    //@ sourceURL=ele-list.js
     export default {
         props: ["eles", "curEle"],
         inject: [],
         data() {
             return {
-                
+                list: [],
             };
+        },
+        watch: {
+            eles: {
+                handler(newVal, oldVal) {
+                    let res = this.eles.map((ele) => {
+                        return {
+                            id: ele.id,
+                            name: ele.name,
+                            type: ele.type,
+                            visible: ele.visible,
+                            lock: false,
+                        };
+                    });
+                    this.list = res;
+                },
+                immediate: true,
+                deep: true,
+            },
         },
         components: {},
         created() {},
-        mounted() {},
+        mounted() {
+            console.log(this.eles);
+        },
         methods: {
             selectEle(ele) {
                 this.$emit("select", ele);
+            },
+            changeEleVisible(ele) {
+                let visible = !ele.visible;
+                this.$emit("visible-change", ele, visible);
             },
         },
     };
@@ -60,7 +69,6 @@
         display: flex;
         flex-direction: column;
         padding: 10px 0px;
-        grid-gap: 10px;
         min-height: 200px;
 
         & > div {
@@ -68,7 +76,8 @@
             align-items: center;
             grid-gap: 10px;
             cursor: pointer;
-            padding: 0 10px;
+            padding: 4px 10px;
+            line-height: 32px;
 
             & > img {
                 width: 30px;
@@ -77,10 +86,16 @@
 
             & > div:nth-child(2) {
                 flex: 1;
+                font-size: 16px;
             }
 
             & > div:nth-child(n + 3) {
-                font-size: 18px;
+                font-size: 20px;
+            }
+
+            & > div:nth-child(n + 3):hover {
+                transform: scale(1.2);
+                transition: all 0.2s;
             }
         }
 

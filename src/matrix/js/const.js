@@ -124,7 +124,7 @@ export const SceneType = {
             [ElementType.Polyline]: [{ field: "positions", type: "vector2-array", label: "坐标" }],
             [ElementType.Polygon]: [{ field: "positions", type: "vector2-array", label: "坐标" }],
             [ElementType.Label]: [
-                { field: "position", type: "vector", label: "坐标" },
+                { field: "position", type: "vector2", label: "坐标" },
                 { field: "value", type: "string", label: "值" },
             ],
             [ElementType.Picture]: [
@@ -136,7 +136,7 @@ export const SceneType = {
             ],
             [ElementType.PointLine]: [
                 { field: "line", type: "vector2-array", label: "线坐标" },
-                { field: "position", type: "number", label: "位置(0-100)" },
+                { field: "percent", type: "number", label: "百分比" },
                 { field: "icon", type: "icon", label: "图标" },
             ],
         },

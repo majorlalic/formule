@@ -1,4 +1,4 @@
-import { InteractionType } from "../const.js";
+import { InteractionType, ActionTypes } from "../const.js";
 /**
  * 动作
  */
@@ -7,10 +7,6 @@ export class Action {
      * @type {InteractionType} 交互类型
      */
     type;
-    /**
-     * @type {number} 判断条件
-     */
-    condition;
     /**
      * @type {ActionTypes} 动作类型
      */

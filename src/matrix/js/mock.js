@@ -43,7 +43,7 @@ export const scenes = [
                     trigger: [
                         {
                             type: InteractionType.Click,
-                            condition: "",
+
                             actionType: ActionTypes.PopComponent.name,
                             actionOptions: {
                                 name: "live-camera",
@@ -78,7 +78,7 @@ export const scenes = [
                     trigger: [
                         {
                             type: InteractionType.Click,
-                            condition: "",
+
                             actionType: ActionTypes.ChangeScene.name,
                             actionOptions: {
                                 sceneId: "1231235435123123",
@@ -128,7 +128,7 @@ export const scenes = [
                     trigger: [
                         // {
                         //     type: InteractionType.Click,
-                        //     condition: "",
+                        //
                         //     // actionType: ActionTypes.OpenUrl.name,
                         //     // actionOptions: {
                         //     //     url: "http://www.baidu.com?bussinessId=${data.bussinessId}",
@@ -141,7 +141,7 @@ export const scenes = [
                         // },
                         {
                             type: InteractionType.Click,
-                            condition: "",
+
                             actionType: ActionTypes.RunEleBehavior.name,
                             actionOptions: {
                                 behaviorName: "changeVisible",
@@ -177,7 +177,7 @@ export const scenes = [
                     trigger: [
                         {
                             type: InteractionType.Click,
-                            condition: "",
+
                             actionType: ActionTypes.PopComponent.name,
                             actionOptions: {
                                 name: "line-chart",
@@ -190,7 +190,7 @@ export const scenes = [
                         },
                         {
                             type: InteractionType.Custom,
-                            condition: "",
+
                             actionType: ActionTypes.RunEleBehavior.name,
                             actionOptions: {
                                 behaviorName: "changeValue",
@@ -202,7 +202,7 @@ export const scenes = [
                         },
                         // {
                         //     type: InteractionType.Custom,
-                        //     condition: "",
+                        //
                         //     actionType: ActionTypes.ExecuteScript.name,
                         //     actionOptions: {
                         //         url: "/matrix/scripts/testScript.js",
@@ -318,7 +318,7 @@ export const scenes = [
                     trigger: [
                         {
                             type: InteractionType.Click,
-                            condition: "",
+
                             actionType: ActionTypes.ChangeScene.name,
                             actionOptions: {
                                 sceneId: "9832789237491283",
@@ -364,7 +364,7 @@ export const scenes = [
                     trigger: [
                         // {
                         //     type: InteractionType.Click,
-                        //     condition: "",
+                        //
                         //     actionType: ActionTypes.PopComponent.name,
                         //     actionOptions: {
                         //         name: "live-camera",
@@ -377,7 +377,7 @@ export const scenes = [
                         // },
                         // {
                         //     type: InteractionType.Click,
-                        //     condition: "",
+                        //
                         //     actionType: ActionTypes.RunEleBehavior.name,
                         //     actionOptions: {
                         //         behaviorName: "changeColor",
@@ -389,7 +389,7 @@ export const scenes = [
                         // },
                         {
                             type: InteractionType.Click,
-                            condition: "",
+
                             actionType: ActionTypes.ChangeColor.name,
                             actionOptions: {
                                 color: Colors.Offline,
@@ -431,7 +431,7 @@ export const scenes = [
                 zIndex: 4,
                 type: ElementType.PointLine,
                 graph: {
-                    line: [
+                    positions: [
                         {
                             x: 1250,
                             y: 348,
@@ -449,7 +449,7 @@ export const scenes = [
                             y: 750,
                         },
                     ],
-                    position: -10,
+                    percent: -10,
                     icon: "uav",
                 },
                 data: {
@@ -460,7 +460,7 @@ export const scenes = [
                     trigger: [
                         {
                             type: InteractionType.Custom,
-                            condition: "",
+
                             actionType: ActionTypes.ExecuteScript.name,
                             actionOptions: {
                                 url: "/matrix/scripts/robot.js",
@@ -605,7 +605,7 @@ export const scenes = [
                     trigger: [
                         {
                             type: InteractionType.Custom,
-                            condition: "",
+
                             actionType: ActionTypes.RunEleBehavior.name,
                             actionOptions: {
                                 behaviorName: "changeValue",
@@ -656,7 +656,7 @@ export const scenes = [
                     trigger: [
                         {
                             type: InteractionType.Click,
-                            condition: "",
+
                             actionType: ActionTypes.ChangePosition.name,
                             actionOptions: {
                                 position: {
@@ -690,7 +690,7 @@ export const scenes = [
                     trigger: [
                         {
                             type: InteractionType.Click,
-                            condition: "",
+
                             actionType: ActionTypes.ChangeAnchor.name,
                             actionOptions: {
                                 anchorId: "123123",
@@ -767,7 +767,7 @@ export const scenes = [
                     trigger: [
                         {
                             type: InteractionType.Custom,
-                            condition: "",
+
                             actionType: ActionTypes.RunEleBehavior.name,
                             actionOptions: {
                                 behaviorName: "changeValue",
@@ -779,7 +779,7 @@ export const scenes = [
                         },
                         {
                             type: InteractionType.Click,
-                            condition: "",
+
                             actionType: ActionTypes.RunEleBehavior.name,
                             actionOptions: {
                                 behaviorName: "changeColor",
