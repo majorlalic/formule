@@ -21,17 +21,21 @@
             </div>
             <div class="left" style="grid-area: 2 / 1 / 3 / 2">
                 <a-tabs default-active-key="1">
-                    <a-tab-pane key="1" tab="图元" class="ele">
+                    <a-tab-pane key="1" tab="图元">
                         <a-collapse :active-key="[1,2]">
                             <a-collapse-panel key="1" header="图元类型">
                                 <ele-type
                                     :scene-type="scene?.type"
-                                    :create-type="createType"
                                     @select="selectType"
                                 ></ele-type>
                             </a-collapse-panel>
                             <a-collapse-panel key="2" header="图元列表" :disabled="false">
-                                <ele-list :eles="scene?.elements || []" :cur-ele="curEle" @select="selectEle" @visible-change="changeEleVisible"></ele-list>
+                                <ele-list
+                                    :eles="scene?.elements || []"
+                                    :cur-ele="curEle"
+                                    @select="selectEle"
+                                    @visible-change="changeEleVisible"
+                                ></ele-list>
                             </a-collapse-panel>
                         </a-collapse>
                     </a-tab-pane>
@@ -47,61 +51,24 @@
             <div id="scene" class="middle" style="grid-area: 2 / 2 / 3 / 3"></div>
             <div class="right ele-attr" style="grid-area: 2 / 3 / 3 / 4">
                 <a-tabs default-active-key="1" v-if="curEle">
-                    <a-tab-pane key="1" tab="图元属性">
-                        <a-form :label-col="{ span: 4 }" :wrapper-col="{ span: 20 }">
-                            <a-form-item label="id">
-                                <a-input v-model="curEle.id" disabled></a-input>
-                            </a-form-item>
-                            <a-form-item label="名称">
-                                <a-input v-model="curEle.name"></a-input>
-                            </a-form-item>
-                            <a-form-item label="类型">
-                                <a-input v-model="curEle.type" disabled></a-input>
-                            </a-form-item>
-                            <a-form-item label="颜色">
-                                <color-selector v-model="curEle.color"></color-selector>
-                            </a-form-item>
-                            <a-form-item label="可见">
-                                <a-switch v-model="curEle.visible" checked-children="可见" un-checked-children="隐藏" />
-                            </a-form-item>
-                            <a-form-item label="层级">
-                                <a-input-number style="width: 100%" v-model="curEle.zIndex"></a-input-number>
-                            </a-form-item>
-                            <a-form-item label="图形">
-                                <graph-editor
-                                    :scene-type="scene.type"
-                                    :ele-type="curEle.type"
-                                    :graph="curEle?.graph"
-                                ></graph-editor>
-                            </a-form-item>
-                        </a-form>
+                    <a-tab-pane key="1" tab="图元属性" style="overflow-y: auto">
+                        <ele-attr :cur-ele="curEle" :scene-type="scene.type"></ele-attr>
                     </a-tab-pane>
-                    <a-tab-pane key="2" tab="图元数据" force-render> Content of Tab Pane 2 </a-tab-pane>
-                    <a-tab-pane key="3" tab="图元动作" force-render> Content of Tab Pane 2 </a-tab-pane>
+                    <a-tab-pane key="2" tab="图元数据">
+                        <ele-data :data="curEle.data"></ele-data>
+                    </a-tab-pane>
+                    <a-tab-pane key="3" tab="图元配置">
+                        <ele-conf :conf="curEle.conf"></ele-conf>
+                    </a-tab-pane>
                 </a-tabs>
                 <a-empty v-else description="请选择一个图元" style="margin-top: 40%"></a-empty>
             </div>
 
-            <a-modal
-                title="创建场景"
-                :visible="showCreateScene"
-                ok-text="确认"
-                cancel-text="取消"
-                @ok="createScene"
-                @cancel="showCreateScene = false"
-            >
-                <a-form :label-col="{ span: 4 }" :wrapper-col="{ span: 20 }">
-                    <a-form-item label="场景类型">
-                        <a-select v-model="newScene.type" :options="sceneTypes"></a-select>
-                    </a-form-item>
-                    <a-form-item label="名称">
-                        <a-input v-model="newScene.name"></a-input>
-                    </a-form-item>
-                </a-form>
-            </a-modal>
+            
         </div>
 
         <script src="/dep/js/echarts.min.js"></script>
+        <script src="/dep/js/ace/ace.js"></script>
         <script src="/dep/js/vue.min.js"></script>
         <script src="/dep/js/vue-component-loader.js"></script>
         <script src="/dep/plugins/ant-design/moment.js"></script>

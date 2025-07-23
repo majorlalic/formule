@@ -1,10 +1,23 @@
 import { loadVueComponent } from "/matrix/js/vue-component-loader.js";
-import { ModuleNames, EventNames, InteractionType, SceneType, ActionTypes } from "../js/const.js";
+import {
+    ModuleNames,
+    EventNames,
+    InteractionType,
+    SceneType,
+    ActionTypes,
+} from "../js/const.js";
 import EventBusWorker from "/common/js/eventBus/eventBusWorker.js";
 import { getNewScene, SceneDef } from "../js/def/sceneDef.js";
 import { ElementDef } from "../js/def/element/elementDef.js";
 import { Action, ElementData } from "../js/def/typeDef.js";
-import { collectPlaceholders, setData, initFrame, deepClone, validateScene, downloadJson } from "../js/utils.js";
+import {
+    collectPlaceholders,
+    setData,
+    initFrame,
+    deepClone,
+    validateScene,
+    downloadJson,
+} from "../js/utils.js";
 import { SCENE3D } from "./3d.js";
 import { SCENE2D } from "./2d.js";
 import { SCENEGIS } from "./gis.js";
@@ -30,23 +43,22 @@ var app = new Vue({
         curEle: null,
 
         createType: "",
-
-        showCreateScene: false,
-        sceneTypes: [],
-        newScene: {
-            name: "",
-            type: "",
-        },
     },
     components: {
-        "ele-type": () => loadVueComponent("/matrix/editor/components/ele-type.html"),
-        "ele-list": () => loadVueComponent("/matrix/editor/components/ele-list.html"),
-        "color-selector": () => loadVueComponent("/matrix/editor/components/color-selector.html"),
-        "graph-editor": () => loadVueComponent("/matrix/editor/components/graph-editor.html"),
+        "ele-type": () =>
+            loadVueComponent("/matrix/editor/components/ele-type.html"),
+        "ele-list": () =>
+            loadVueComponent("/matrix/editor/components/ele-list.html"),
+        "ele-attr": () =>
+            loadVueComponent("/matrix/editor/components/ele-attr.html"),
+        "ele-data": () =>
+            loadVueComponent("/matrix/editor/components/ele-data.html"),
+        "ele-conf": () =>
+            loadVueComponent("/matrix/editor/components/ele-conf.html"),
     },
     created: function () {},
     mounted: function () {
-        this.scene = SCENE3D;
+        this.scene = SCENEGIS;
 
         // 初始化场景
         this.initScene(this.scene);
@@ -56,50 +68,9 @@ var app = new Vue({
 
         // 初始化动作处理器
         actionDispatcher = new ActionDispatcher(eventBus);
-
-        Object.keys(SceneType).forEach((key) => {
-            this.sceneTypes.push({
-                key,
-                name: key,
-                label: key,
-            });
-        });
     },
     computed: {},
     methods: {
-        /**
-         * 打开创建场景对话框
-         */
-        popCreateScene() {
-            if (this.scene.hasOwnProperty("id")) {
-                let _this = this;
-                let confirm = this.$confirm({
-                    title: "当前已存在场景，创建新场景将丢失改动",
-                    content: "请确认已导出场景配置，点击确认将继续创建场景",
-                    okText: "确认",
-                    cancelText: "取消",
-                    onOk() {
-                        confirm.destroy();
-                        _this.showCreateScene = true;
-                    },
-                    onCancel() {
-                        confirm.destroy();
-                    },
-                });
-            } else {
-                this.showCreateScene = true;
-            }
-        },
-        /**
-         * 创建场景
-         */
-        createScene() {
-            this.showCreateScene = false;
-            this.scene = getNewScene(this.newScene.type, this.newScene.name);
-            this.initScene(this.scene);
-            this.newScene.type = "";
-            this.newScene.name = "";
-        },
         /**
          * 选择图元类型
          * @param {String} type
@@ -108,21 +79,58 @@ var app = new Vue({
             this.createType = type;
         },
         /**
+         * 打开创建场景对话框
+         */
+        popCreateScene() {
+            if (this.scene.hasOwnProperty("id")) {
+                let confirm = this.$confirm({
+                    title: "当前已存在场景，创建新场景将丢失改动",
+                    content: "请确认已导出场景配置，点击确认将继续创建场景",
+                    okText: "确认",
+                    cancelText: "取消",
+                    onOk() {
+                        confirm.destroy();
+                        this.popCreateScene();
+                    },
+                    onCancel() {
+                        confirm.destroy();
+                    },
+                });
+            } else {
+                this.popCreateScene();
+            }
+        },
+        popCreateScene() {
+            let _this = this;
+            mountComponent(
+                "/matrix/editor/components/scene-creator.html",
+                {},
+                {
+                    create(scene) {
+                        this.scene = scene;
+                        _this.initScene(scene);
+                    },
+                }
+            );
+        },
+        /**
          * 初始化场景
          * @param {SceneDef} scene
          */
         initScene(scene) {
             let cloneScene = deepClone(scene);
-            initFrame("scene", cloneScene).then(({ id, type, conf, elements }) => {
-                eventBus.postMessage(EventNames.InitScene, conf, elements);
-                eleMap = new Map();
-                elements.forEach((ele) => {
-                    eleMap.set(ele.id, ele);
-                });
+            initFrame("scene", cloneScene).then(
+                ({ id, type, conf, elements }) => {
+                    eventBus.postMessage(EventNames.InitScene, conf, elements);
+                    eleMap = new Map();
+                    elements.forEach((ele) => {
+                        eleMap.set(ele.id, ele);
+                    });
 
-                // 重置当前选中图元
-                this.curEle = null;
-            });
+                    // 重置当前选中图元
+                    this.curEle = null;
+                }
+            );
         },
         /**
          * 订阅事件
@@ -141,31 +149,33 @@ var app = new Vue({
          * 初始化文件上传事件
          */
         initFileEvent() {
-            document.getElementById("jsonFileInput").addEventListener("change", (event) => {
-                const file = event.target.files[0];
-                if (!file) return;
+            document
+                .getElementById("jsonFileInput")
+                .addEventListener("change", (event) => {
+                    const file = event.target.files[0];
+                    if (!file) return;
 
-                const reader = new FileReader();
+                    const reader = new FileReader();
 
-                reader.onload = (e) => {
-                    try {
-                        const jsonString = e.target.result;
-                        const jsonObj = JSON.parse(jsonString);
-                        if (validateScene(jsonObj)) {
-                            this.scene = jsonObj;
-                            this.initScene(jsonObj);
+                    reader.onload = (e) => {
+                        try {
+                            const jsonString = e.target.result;
+                            const jsonObj = JSON.parse(jsonString);
+                            if (validateScene(jsonObj)) {
+                                this.scene = jsonObj;
+                                this.initScene(jsonObj);
+                            }
+                        } catch (err) {
+                            console.error("JSON 解析失败:", err);
                         }
-                    } catch (err) {
-                        console.error("JSON 解析失败:", err);
-                    }
-                };
+                    };
 
-                reader.onerror = (err) => {
-                    console.error("文件读取失败:", err);
-                };
+                    reader.onerror = (err) => {
+                        console.error("文件读取失败:", err);
+                    };
 
-                reader.readAsText(file);
-            });
+                    reader.readAsText(file);
+                });
         },
         createEle() {},
         getEleById(id) {

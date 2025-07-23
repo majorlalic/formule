@@ -1,0 +1,39 @@
+<template>
+    <div class="ele-conf">
+        图元配置在此
+    </div>
+</template>
+
+<script>
+    //@ sourceURL=ele-conf.js
+    export default {
+        props: ["conf"],
+        inject: [],
+        data() {
+            return {};
+        },
+        components: {},
+        created() {},
+        watch: {
+            conf: {
+                handler(newVal, oldVal) {
+                    this.jsonData = newVal;
+                },
+                immediate: true,
+                deep: true,
+            },
+        },
+        mounted() {
+        },
+        methods: {
+            
+        },
+    };
+</script>
+
+<style lang="less">
+    .ele-conf {
+        height: 100%;
+        padding: 10px 16px;
+    }
+</style>

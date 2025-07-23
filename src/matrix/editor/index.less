@@ -13,6 +13,13 @@
     color: @fontColor;
     user-select: none;
 
+    .left,
+    .middle,
+    .right {
+        height: 100%;
+        overflow: auto; /* 💡 内容超出时滚动 */
+    }
+
     .top {
         background-color: @bgColor;
         display: flex;
@@ -51,8 +58,9 @@
             flex-direction: column;
             border-right: 1px solid @borderColor;
 
-            & > div {
-                height: 50%;
+            & > .ant-collapse {
+                height: 100%;
+                overflow-y: auto;
             }
         }
 
@@ -62,6 +70,12 @@
 
     .right {
         border-left: 1px solid @borderColor;
+    }
+
+    .left,
+    .middle,
+    .right {
+        overflow: auto; /* 💡 内容超出时滚动 */
     }
 
     .card {
@@ -84,7 +98,8 @@
     }
 }
 
-.ant-collapse, .ant-collapse-content {
+.ant-collapse,
+.ant-collapse-content {
     border: none !important;
 }
 
@@ -92,7 +107,7 @@
     border-bottom: none !important;
 }
 
-.ant-collapse-header{
+.ant-collapse-header {
     border-top: 1px solid #e4e4e4;
     border-bottom: 1px solid #e4e4e4;
 }
@@ -124,5 +139,22 @@
 }
 
 .ant-tabs-content {
-    padding: 0 20px !important;
+    // padding: 0 20px !important;
+}
+
+.ant-tabs,
+.ant-tabs-tabpane {
+    height: 100% !important;
+}
+.ant-tabs-content {
+    height: calc(~"100% - 35px") !important;
+}
+
+.ant-tabs-tabpane{
+    height: 100%;
+    overflow-y: auto;
+}
+
+.ant-tabs-bar{
+    margin: 0!important;
 }
