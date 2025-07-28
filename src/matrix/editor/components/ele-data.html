@@ -1,6 +1,6 @@
 <template>
     <div class="ele-data">
-        <a-space style="margin-bottom: 16px">
+        <a-space style="margin-bottom: 10px">
             <a-button @click="formatJson">格式化</a-button>
             <a-button @click="saveData" type="primary">保存</a-button>
         </a-space>
@@ -63,7 +63,7 @@
 <style lang="less">
     .ele-data {
         height: 100%;
-        padding: 10px 16px;
+        padding: 10px;
         display: flex;
         flex-direction: column;
 
@@ -71,6 +71,7 @@
             flex: 1;
             width: 100%;
             border: 1px solid #ccc;
+            border-radius: 6px;
         }
     }
 </style>

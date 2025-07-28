@@ -73,9 +73,12 @@
     }
 
     .left,
-    .middle,
     .right {
         overflow: auto; /* 💡 内容超出时滚动 */
+    }
+
+    .middle {
+        overflow: hidden;
     }
 
     .card {
@@ -150,11 +153,11 @@
     height: calc(~"100% - 35px") !important;
 }
 
-.ant-tabs-tabpane{
+.ant-tabs-tabpane {
     height: 100%;
     overflow-y: auto;
 }
 
-.ant-tabs-bar{
-    margin: 0!important;
+.ant-tabs-bar {
+    margin: 0 !important;
 }

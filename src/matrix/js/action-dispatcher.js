@@ -54,9 +54,9 @@ export class ActionDispatcher {
         }
 
         // 1. 校验动作参数
-        if (!checkProps(action.actionOptions, actionType.scheme)) {
+        if (!checkProps(action.actionOptions, actionType.scheme.map(i => i.field))) {
             console.warn(
-                `动作${action.actionType}必须传递${actionType.scheme.join(",")}属性, 请在actionOptions传递指定参数`
+                `动作${action.actionType}必须传递${actionType.scheme.map(i => i.field).join(",")}属性, 请在actionOptions传递指定参数`
             );
             return;
         }

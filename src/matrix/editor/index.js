@@ -55,10 +55,16 @@ var app = new Vue({
             loadVueComponent("/matrix/editor/components/ele-data.html"),
         "ele-conf": () =>
             loadVueComponent("/matrix/editor/components/ele-conf.html"),
+        "scene-conf": () =>
+            loadVueComponent("/matrix/editor/components/scene-conf.html"),
+        "scene-anchor": () =>
+            loadVueComponent("/matrix/editor/components/scene-anchor.html"),
+        "scene-layer": () =>
+            loadVueComponent("/matrix/editor/components/scene-layer.html"),
     },
     created: function () {},
     mounted: function () {
-        this.scene = SCENEGIS;
+        this.scene = SCENE3D;
 
         // 初始化场景
         this.initScene(this.scene);
@@ -81,7 +87,8 @@ var app = new Vue({
         /**
          * 打开创建场景对话框
          */
-        popCreateScene() {
+        createScene() {
+            let _this = this;
             if (this.scene.hasOwnProperty("id")) {
                 let confirm = this.$confirm({
                     title: "当前已存在场景，创建新场景将丢失改动",
@@ -90,7 +97,7 @@ var app = new Vue({
                     cancelText: "取消",
                     onOk() {
                         confirm.destroy();
-                        this.popCreateScene();
+                        _this.popCreateScene();
                     },
                     onCancel() {
                         confirm.destroy();
@@ -192,8 +199,8 @@ var app = new Vue({
          */
         selectEle(ele) {
             let target = this.getEleById(ele.id);
-
             this.curEle = target;
+            eventBus.postMessage(EventNames.SelectEle, target);
         },
         /**
          * 修改图元可见性
@@ -227,6 +234,9 @@ var app = new Vue({
                 this.$message.warn("暂无场景");
             }
         },
+        preview(){
+            window.open('')
+        }
     },
 });
 

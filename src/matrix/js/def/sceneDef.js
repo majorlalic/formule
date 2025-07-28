@@ -68,6 +68,10 @@ export class SceneDef {
             EventNames.ChangeVisible,
             this.changeVisible.bind(this)
         );
+         this.eventBus.on(
+            EventNames.SelectEle,
+            this.selectEle.bind(this)
+        );
     }
 
     /**
@@ -163,9 +167,9 @@ export class SceneDef {
         let behavior = ElementBehaviors[behaviorName];
 
         // 4. 校验必要参数
-        if (!checkProps(behaviorParam, behavior.scheme)) {
+        if (!checkProps(behaviorParam, behavior.scheme.map(i => i.field))) {
             console.log(
-                `${behaviorName}缺少必须参数, behaviorParam必须包括${behavior.scheme.join(
+                `${behaviorName}缺少必须参数, behaviorParam必须包括${behavior.scheme.map(i => i.field).join(
                     ","
                 )}`
             );

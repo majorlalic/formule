@@ -1,32 +1,138 @@
 <template>
     <div class="ele-conf">
-        图元配置在此
+        <div class="conf-item">
+            <div class="label">名称模式:</div>
+            <div class="form">
+                <a-select :options="nameModes" v-model="nameMode"></a-select>
+            </div>
+        </div>
+
+        <a-divider></a-divider>
+
+        <a-button type="primary" @click="addTrigger" style="margin-bottom: 10px">新增事件</a-button>
+
+        <div class="trigger-list">
+            <div v-for="item of triggers" class="trigger-card">
+                <a-button @click="remove(item.id)" icon="delete">删除事件</a-button>
+                <div class="conf-item">
+                    <div class="label">事件类型:</div>
+                    <div class="form">
+                        <a-select :options="interactionType" v-model="item.type"></a-select>
+                    </div>
+                </div>
+                <div class="conf-item">
+                    <div class="label">动作类型:</div>
+                    <div class="form">
+                        <a-select :options="actionTypes" v-model="item.actionTypes" @change="changeActionType(item)"></a-select>
+                    </div>
+                </div>
+                <div class="conf-item">
+                    <div class="label">动作属性:</div>
+                    <div class="form" v-if="item.actionType === 'PopComponent'">
+                        <div v-for="attr of item.attrs">
+                            <div class="label">
+                                <!-- {{ attr.label }}: -->
+                            </div>
+                            <div class="form">
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
 <script>
     //@ sourceURL=ele-conf.js
+    import { InteractionType, ActionTypes, NameModes } from "/matrix/js/const.js";
+    import { generateUUID } from "/common/js/utils.js";
     export default {
         props: ["conf"],
         inject: [],
         data() {
-            return {};
+            return {
+                actionTypes: [],
+                interactionType: [],
+                nameModes: [],
+
+                triggers: [],
+                nameMode: "",
+            };
         },
         components: {},
         created() {},
-        watch: {
-            conf: {
-                handler(newVal, oldVal) {
-                    this.jsonData = newVal;
-                },
-                immediate: true,
-                deep: true,
-            },
-        },
         mounted() {
+            this.initSelect();
+
+            let arr = [...this.conf.trigger];
+            arr.map((i) => {
+                i.id = generateUUID(8);
+                i.attrs = ActionTypes[i.actionType]?.scheme || [];
+            });
+            this.triggers = arr;
         },
         methods: {
-            
+            changeActionType(trigger) {
+
+            },
+            addTrigger() {
+                this.triggers.push({
+                    id: generateUUID(8),
+                    type: "",
+                    actionType: "",
+                    actionOptions: undefined,
+                    attrs: [],
+                });
+            },
+            remove(id) {
+                let index = this.triggers.findIndex((i) => i.id == id);
+                this.triggers.splice(index, 1);
+            },
+            updateConf() {
+                this.$emit("change", {
+                    nameMode: this.nameMode,
+                    trigger: this.triggers,
+                });
+            },
+            initSelect() {
+                Object.values(ActionTypes).forEach((item) => {
+                    this.actionTypes.push({
+                        key: item.name,
+                        name: item.name,
+                        label: item.label,
+                    });
+                });
+
+                let interactionMap = {
+                    Click: "点击",
+                    Hover: "鼠标悬浮",
+                    HoverOut: "鼠标移出",
+                    Custom: "自定义",
+                };
+                Object.keys(InteractionType).forEach((item) => {
+                    this.interactionType.push({
+                        key: item,
+                        name: item,
+                        label: interactionMap[item] || item,
+                    });
+                });
+
+                // 在此翻译吧, 懒得在常量折腾了
+                let map = {
+                    Permanent: "常显",
+                    Hover: "鼠标悬浮",
+                    Hidden: "隐藏",
+                };
+                Object.keys(NameModes).forEach((item) => {
+                    this.nameModes.push({
+                        key: item,
+                        name: item,
+                        label: map[item] || item,
+                    });
+                });
+            },
         },
     };
 </script>
@@ -34,6 +140,49 @@
 <style lang="less">
     .ele-conf {
         height: 100%;
-        padding: 10px 16px;
+        display: flex;
+        flex-direction: column;
+        padding: 10px;
+        border-radius: 4px;
+
+        .ant-input-number,
+        .ant-select,
+        .ant-input {
+            width: 100% !important;
+        }
+
+        .ant-divider-horizontal {
+            margin: 20px 0;
+        }
+
+        .trigger-list {
+            flex: 1;
+            height: 0;
+            overflow-y: auto;
+
+            & > .trigger-card {
+                background-color: rgba(178, 208, 250, 0.3);
+                border-radius: 4px;
+                grid-gap: 10px;
+                display: grid;
+                padding: 10px;
+                margin-bottom: 10px;
+            }
+        }
+
+        .conf-item {
+            display: flex;
+            grid-gap: 10px;
+
+            .label {
+                width: 70px;
+                text-align: center;
+                line-height: 32px;
+            }
+
+            & > .form {
+                flex: 1;
+            }
+        }
     }
 </style>

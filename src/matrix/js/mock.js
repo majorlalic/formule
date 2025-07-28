@@ -5,17 +5,15 @@ export const scenes = [
         name: "场景A",
         type: SceneType.ThreeD.name,
         conf: {
-            position: {
-                camera: {
-                    x: 10.202314732145368,
-                    y: 12.387200675792423,
-                    z: 10.05116639909836,
-                },
-                target: {
-                    x: 1.459859267841335,
-                    y: 1.2200253011432654,
-                    z: 1.3087150956830444,
-                },
+            camera: {
+                x: 10.202314732145368,
+                y: 12.387200675792423,
+                z: 10.05116639909836,
+            },
+            target: {
+                x: 1.459859267841335,
+                y: 1.2200253011432654,
+                z: 1.3087150956830444,
             },
         },
         elements: [
@@ -177,7 +175,6 @@ export const scenes = [
                     trigger: [
                         {
                             type: InteractionType.Click,
-
                             actionType: ActionTypes.PopComponent.name,
                             actionOptions: {
                                 name: "line-chart",
@@ -190,7 +187,6 @@ export const scenes = [
                         },
                         {
                             type: InteractionType.Custom,
-
                             actionType: ActionTypes.RunEleBehavior.name,
                             actionOptions: {
                                 behaviorName: "changeValue",
@@ -234,33 +230,29 @@ export const scenes = [
             {
                 id: "camera1",
                 name: "大门球机",
-                position: {
-                    camera: {
-                        x: 8.336226974306731,
-                        y: 6.061127903362533,
-                        z: 8.399705309490527,
-                    },
-                    target: {
-                        x: -1.103397394987877,
-                        y: 1.2200253011432658,
-                        z: -1.16556062846603,
-                    },
+                camera: {
+                    x: 8.336226974306731,
+                    y: 6.061127903362533,
+                    z: 8.399705309490527,
+                },
+                target: {
+                    x: -1.103397394987877,
+                    y: 1.2200253011432658,
+                    z: -1.16556062846603,
                 },
             },
             {
                 id: "defencearea",
                 name: "防区",
-                position: {
-                    camera: {
-                        x: 8.01491119916642,
-                        y: 1.2200253011432667,
-                        z: 7.947393753870351,
-                    },
-                    target: {
-                        x: -1.103397394987877,
-                        y: 1.2200253011432658,
-                        z: -1.16556062846603,
-                    },
+                camera: {
+                    x: 8.01491119916642,
+                    y: 1.2200253011432667,
+                    z: 7.947393753870351,
+                },
+                target: {
+                    x: -1.103397394987877,
+                    y: 1.2200253011432658,
+                    z: -1.16556062846603,
                 },
             },
         ],
@@ -334,13 +326,7 @@ export const scenes = [
         name: "2D场景",
         type: SceneType.TwoD.name,
         conf: {
-            background: {
-                url: "/matrix/engine/2d/image/bg.png",
-                width: 1075,
-                height: 653,
-                x: 422.5,
-                y: 128.5,
-            },
+            position: { x: -1260, y: -455 },
         },
         elements: [
             {
@@ -627,7 +613,7 @@ export const scenes = [
         type: SceneType.Gis.name,
         conf: {
             // tileLayer: "http://10.11.3.25:8899/788865972/{z}/{x}/{y}",
-            center: [43.0367, 88.84643],
+            center: { lat: 43.0367, lng: 88.84643 },
             minZoom: 5,
             maxZoom: 18,
             zoom: 9,
@@ -709,10 +695,22 @@ export const scenes = [
                 type: ElementType.Polyline,
                 graph: {
                     positions: [
-                        [43.37710501700073, 88.41796875000001],
-                        [43.16512263158296, 88.95904541015625],
-                        [43.177141346631714, 89.57977294921876],
-                        [43.36512572875844, 90.00549316406251],
+                        {
+                            lat: 43.37710501700073,
+                            lng: 88.41796875000001,
+                        },
+                        {
+                            lat: 43.16512263158296,
+                            lng: 88.95904541015625,
+                        },
+                        {
+                            lat: 43.177141346631714,
+                            lng: 89.57977294921876,
+                        },
+                        {
+                            lat: 43.36512572875844,
+                            lng: 90.00549316406251,
+                        },
                     ],
                 },
                 data: {},
@@ -731,10 +729,22 @@ export const scenes = [
                 type: ElementType.Polygon,
                 graph: {
                     positions: [
-                        [42.982548873720326, 88.25592041015626],
-                        [42.91620643817353, 89.27490234375001],
-                        [42.53891577257117, 89.15679931640626],
-                        [42.66628070564928, 88.20648193359376],
+                        {
+                            lat: 42.982548873720326,
+                            lng: 88.25592041015626,
+                        },
+                        {
+                            lat: 42.91620643817353,
+                            lng: 89.27490234375001,
+                        },
+                        {
+                            lat: 42.53891577257117,
+                            lng: 89.15679931640626,
+                        },
+                        {
+                            lat: 42.66628070564928,
+                            lng: 88.20648193359376,
+                        },
                     ],
                 },
                 data: {},

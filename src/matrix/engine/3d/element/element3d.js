@@ -131,4 +131,12 @@ export default class Element3d extends ElementDef {
     findLayerById(name) {
         return this.group.children.find((i) => i.name == name);
     }
+
+    /**
+     * 编辑模型
+     * @param {Boolean} flag 是否编辑
+     */
+    editModel(flag) {
+        
+    }
 }

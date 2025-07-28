@@ -5,13 +5,7 @@ export const SCENE2D = {
     name: "2D场景",
     type: SceneType.TwoD.name,
     conf: {
-        background: {
-            url: "/matrix/engine/2d/image/bg.png",
-            width: 1075,
-            height: 653,
-            x: 422.5,
-            y: 128.5,
-        },
+        position: { x: -960, y: -455 },
     },
     elements: [
         {

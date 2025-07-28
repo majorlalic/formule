@@ -31,18 +31,29 @@ export default class Scene2d extends SceneDef {
         });
 
         this.stage = stage;
-        this.eleLayer = new Konva.Layer();
+        let eleLayer = new Konva.Layer();
+
+        // 创建一个大组，里面是内容图元
+        this.layerGroup = new Konva.Group({
+            draggable: true,
+        });
+        eleLayer.add(this.layerGroup);
 
         this._initConf(conf);
 
-        this.stage.add(this.eleLayer);
-        this.eleLayer.draw();
+        this.stage.add(eleLayer);
+        eleLayer.draw();
         this._initElements(elements);
 
         this.stage.on("click", (e) => {
             const { x, y } = stage.getPointerPosition(); // 获取点击位置的坐标
             console.log("x:", x, "y:", y);
         });
+
+        setInterval(() => {
+            console.log(this.getPosition());
+        }, 2000);
+        
     }
 
     /**
@@ -50,8 +61,13 @@ export default class Scene2d extends SceneDef {
      * @param {Object} conf
      */
     _initConf(conf) {
-        // let { background } = conf;
-        // this._initBackground(background);
+        let { position } = conf;
+        if (position) {
+            this.layerGroup.position({
+                x: this.stage.width() / 2 + position.x,
+                y: this.stage.height() / 2 + position.y,
+            });
+        }
     }
 
     /**
@@ -81,13 +97,13 @@ export default class Scene2d extends SceneDef {
                     break;
                 case ElementType.PointLine:
                     target = new PointLine(ele);
-                    break;    
+                    break;
                 default:
                     console.warn(`gis场景暂未实现${type}类型`);
                     return;
             }
             target.group.zIndex = ele.zIndex || 1;
-            this.eleLayer.add(target.group);
+            this.layerGroup.add(target.group);
             this.eleMap.set(ele.id, target);
 
             // 统一管理
@@ -113,7 +129,7 @@ export default class Scene2d extends SceneDef {
             // this.eventManager.add(target.group);
         });
 
-        this._sortLayerChildrenByZIndex(this.eleLayer);
+        this._sortLayerChildrenByZIndex(this.layerGroup);
     }
 
     /**
@@ -129,8 +145,8 @@ export default class Scene2d extends SceneDef {
      * 将group内的所有图元根据zIndex属性显示层级
      * @param {*} group
      */
-    _sortLayerChildrenByZIndex(layer) {
-        const children = layer.getChildren();
+    _sortLayerChildrenByZIndex(group) {
+        const children = group.getChildren();
 
         const sorted = children.slice().sort((a, b) => {
             const za = typeof a.zIndex === "number" ? a.zIndex : 0;
@@ -139,7 +155,7 @@ export default class Scene2d extends SceneDef {
         });
 
         sorted.forEach((child) => child.moveToTop());
-        layer.batchDraw();
+        group.getLayer().batchDraw();
     }
 
     /**
@@ -165,7 +181,21 @@ export default class Scene2d extends SceneDef {
             group.add(image);
         };
         group.zIndex = -1;
-        this.eleLayer.add(group);
+        this.layerGroup.add(group);
         imageObj.src = url;
+    }
+
+    getPosition() {
+        const stageCenter = {
+            x: this.stage.width() / 2,
+            y: this.stage.height() / 2,
+        };
+
+        const groupPos = this.layerGroup.position();
+
+        return {
+            x: groupPos.x - stageCenter.x,
+            y: groupPos.y - stageCenter.y,
+        };
     }
 }
