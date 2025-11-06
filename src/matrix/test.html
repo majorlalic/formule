@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Document</title>
+        <script src="/dep/plugins/xlsx/xlsx.full.min.js"></script>
+    </head>
+    <body>
+        <script>
+            fetch("./南通应变全域数据2月至8月纵坐标-400到1000.csv") // 相对路径，请确保文件在同目录且服务器能访问
+                .then((res) => res.arrayBuffer())
+                .then((arrayBuffer) => {
+                    const workbook = XLSX.read(arrayBuffer, { type: "array" });
+                    const sheetName = workbook.SheetNames[0];
+                    const sheet = workbook.Sheets[sheetName];
+                    const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                    console.log(json);
+
+                    let res = [
+                        // {
+                        //     time: "2024-11",
+                        //     data: [],
+                        // },
+                        // {
+                        //     time: "2024-12",
+                        //     data: [],
+                        // },
+                        // {
+                        //     time: "2025-01",
+                        //     data: [],
+                        // },
+                        {
+                            time: "2025-02",
+                            data: [],
+                        },
+                        {
+                            time: "2025-03",
+                            data: [],
+                        },
+                        {
+                            time: "2025-04",
+                            data: [],
+                        },
+                        {
+                            time: "2025-05",
+                            data: [],
+                        },
+                        {
+                            time: "2025-06",
+                            data: [],
+                        },
+                        {
+                            time: "2025-07",
+                            data: [],
+                        },
+                        {
+                            time: "2025-08",
+                            data: [],
+                        },
+                    ];
+                    for (let i = 0; i < json.length; i++) {
+                        for (let j = 0; j < json[i].length; j++) {
+                            res[j].data.push(json[i][j]);                      
+                        }
+                    }
+                    console.log(res);
+                })
+                .catch((err) => console.error("读取 Excel 失败：", err));
+        </script>
+    </body>
+</html>

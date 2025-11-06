@@ -30,16 +30,11 @@ export default class Scene3d extends SceneDef {
      */
     initScene(conf, elements) {
         // 基础初始化
-        let { camera, controls, scene, renderer, raycaster, mouse, transform } = init(
-            this.containerId
-        );
+        let { camera, controls, scene, renderer, raycaster, mouse } = init(this.containerId);
         this.camera = camera;
         this.scene = scene;
         this.controls = controls;
         this.raycaster = raycaster;
-        this.renderer = renderer;
-        this.transform = transform;
-        this.currentEditEle = null;
 
         this.eleGroup = new THREE.Group();
         this.scene.add(this.eleGroup);
@@ -59,6 +54,8 @@ export default class Scene3d extends SceneDef {
      * @param {Array<ElementDef>} elements
      */
     _initElements(elements) {
+        
+
         elements.forEach((ele) => {
             let type = ele.type;
 
@@ -89,12 +86,9 @@ export default class Scene3d extends SceneDef {
             // 统一管理
             if (ele.conf?.trigger && ele.conf?.trigger?.length != 0) {
                 this.eventManager.add(target.group, {
-                    onClick: (intersects, e) =>
-                        this.handleEleEvent(target, InteractionType.Click, e),
-                    onHover: (intersects, e) =>
-                        this.handleEleEvent(target, InteractionType.Hover, e),
-                    onHoverOut: () =>
-                        this.handleEleEvent(target, InteractionType.HoverOut),
+                    onClick: (intersects, e) => this.handleEleEvent(target, InteractionType.Click, e),
+                    onHover: (intersects, e) => this.handleEleEvent(target, InteractionType.Hover, e),
+                    onHoverOut: () => this.handleEleEvent(target, InteractionType.HoverOut),
                 });
             }
 
@@ -108,7 +102,8 @@ export default class Scene3d extends SceneDef {
      * @param {Object} anchor 锚点配置
      */
     changeAnchor(anchor) {
-        this._move2Anchor(anchor.camera, anchor.target);
+        let position = anchor.position;
+        this._move2Anchor(position.camera, position.target);
     }
 
     /**
@@ -116,9 +111,9 @@ export default class Scene3d extends SceneDef {
      * @param {Object} conf
      */
     _initConf(conf) {
-        if (conf.hasOwnProperty("camera") && conf.hasOwnProperty("target")) {
-            let { camera, target } = conf;
-            this._move2Anchor(camera, target);
+        if (conf.hasOwnProperty("position")) {
+            let { position } = conf;
+            this._move2Anchor(position.camera, position.target);
         }
     }
 
@@ -143,27 +138,5 @@ export default class Scene3d extends SceneDef {
             camera: this.camera.position,
             target: this.controls.target,
         });
-    }
-
-    /**
-     * 选中图元
-     * @param {ElementDef} ele
-     */
-    selectEle(ele) {
-        // 1. 如果有正在编辑的图元，先关闭
-        if (this.currentEditingEle) {
-            this.transform.detach();
-            this.currentEditingEle = null;
-        }
-
-        // 2. 激活新的 group
-        
-        let target = this.eleMap.get(ele.id);
-        if (target) {
-            this.currentEditingEle = target;
-            this.transform.attach(target.group);
-        } else {
-            console.log(`未找到id为${id}的图元`);
-        }
     }
 }

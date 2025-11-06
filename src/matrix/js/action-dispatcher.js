@@ -17,7 +17,7 @@ export class ActionDispatcher {
      * 初始化构造
      * @param {Resolver} resolver 解释器
      */
-    constructor(eventBus, resolver) {
+    constructor(resolver, eventBus) {
         this.eventBus = eventBus;
         this.resolver = resolver;
 
@@ -54,9 +54,9 @@ export class ActionDispatcher {
         }
 
         // 1. 校验动作参数
-        if (!checkProps(action.actionOptions, actionType.scheme.map(i => i.field))) {
+        if (!checkProps(action.actionOptions, actionType.scheme)) {
             console.warn(
-                `动作${action.actionType}必须传递${actionType.scheme.map(i => i.field).join(",")}属性, 请在actionOptions传递指定参数`
+                `动作${action.actionType}必须传递${actionType.scheme.join(",")}属性, 请在actionOptions传递指定参数`
             );
             return;
         }

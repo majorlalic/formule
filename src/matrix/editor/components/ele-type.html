@@ -1,6 +1,6 @@
 <template>
     <div class="ele-type">
-        <div v-for="type of types" @click="selectType(type)" :class="{'checked': sceneType === type.key}">
+        <div v-for="type of types" @click="selectType(type)" :class="{'checked': createType === type.key}">
             <img :src="'./imgs/'+ type.key + '.svg'" />
             <span>{{type.label}}</span>
         </div>
@@ -12,7 +12,7 @@
     import { Colors } from "/matrix/js/const.js";
 
     export default {
-        props: ["sceneType"],
+        props: ["sceneType","createType"],
         inject: [],
         data() {
             return {
@@ -63,8 +63,8 @@
         grid-gap: 10px;
         padding: 10px;
         overflow-y: auto;
+        min-height: 220px;
         height: 100%;
-        min-height: 200px;
 
         & > div {
             display: flex;

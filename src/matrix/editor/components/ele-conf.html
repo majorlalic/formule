@@ -17,7 +17,7 @@
                 <div class="conf-item">
                     <div class="label">事件类型:</div>
                     <div class="form">
-                        <a-select :options="interactionType" v-model="item.type"></a-select>
+                        <a-select :options="EventType" v-model="item.type"></a-select>
                     </div>
                 </div>
                 <div class="conf-item">
@@ -46,7 +46,7 @@
 
 <script>
     //@ sourceURL=ele-conf.js
-    import { InteractionType, ActionTypes, NameModes } from "/matrix/js/const.js";
+    import { EventType, ActionTypes, NameModes } from "/matrix/js/const.js";
     import { generateUUID } from "/common/js/utils.js";
     export default {
         props: ["conf"],
@@ -54,7 +54,7 @@
         data() {
             return {
                 actionTypes: [],
-                interactionType: [],
+                EventType: [],
                 nameModes: [],
 
                 triggers: [],
@@ -111,8 +111,8 @@
                     HoverOut: "鼠标移出",
                     Custom: "自定义",
                 };
-                Object.keys(InteractionType).forEach((item) => {
-                    this.interactionType.push({
+                Object.keys(EventType).forEach((item) => {
+                    this.EventType.push({
                         key: item,
                         name: item,
                         label: interactionMap[item] || item,

@@ -1,10 +1,8 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { TWEEN } from "three/addons/libs/tween.module.min.js";
-import { TransformControls } from "/dep/js/three/examples/jsm/controls/TransformControls.js";
 
-
-let container, camera, controls, scene, renderer, transform;
+let container, camera, controls, scene, renderer;
 
 let stats;
 
@@ -18,12 +16,7 @@ const init = (containerId) => {
     container = document.getElementById(containerId);
     container.appendChild(renderer.domElement);
 
-    camera = new THREE.PerspectiveCamera(
-        60,
-        window.innerWidth / window.innerHeight,
-        1,
-        1000
-    );
+    camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
     camera.position.set(10, 10, 10);
 
     controls = new OrbitControls(camera, renderer.domElement);
@@ -51,15 +44,13 @@ const init = (containerId) => {
 
     initLight();
 
-    initTransformControls();
-
     animate();
 
     stats = new Stats();
     stats.showPanel(0); // 0: fps
     document.body.appendChild(stats.dom);
 
-    return { camera, controls, scene, renderer, transform };
+    return { camera, controls, scene, renderer };
 };
 
 const initHelper = () => {
@@ -91,17 +82,6 @@ const onWindowResize = () => {
     camera.updateProjectionMatrix();
 
     renderer.setSize(window.innerWidth, window.innerHeight);
-};
-
-const initTransformControls = () => {
-    transform = new TransformControls(
-        camera,
-        renderer.domElement
-    );
-    scene.add(transform);
-    transform.addEventListener("dragging-changed", (event) => {
-        controls.enabled = !event.value;
-    });
 };
 
 const animate = () => {

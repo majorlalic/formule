@@ -27,7 +27,7 @@ export const ICONS = [
 export const ModuleNames = {
     Resolver: "Resolver",
     Scene: "Scene",
-    Editor: "Editor",
+    Editor: "Editor"
 };
 
 /**
@@ -47,8 +47,6 @@ export const EventNames = {
     ChangeVisible: "ChangeVisible", // 修改图元可见 解释器 -> 场景
     ChangeLayer: "ChangeLayer", // 修改图层 解释器 -> 场景
     RunEleBehavior: "RunEleBehavior", // 执行图元行为 解释器 -> 场景
-
-    SelectEle: "SelectEle", // 选中图元 编辑器 -> 场景
 };
 
 /**
@@ -76,18 +74,6 @@ export const SceneType = {
     Gis: {
         name: "Gis",
         dir: "gis",
-        conf: [
-            { field: "center", type: "latlng", label: "中心位置" },
-            { field: "minZoom", type: "number", label: "最小缩放" },
-            { field: "maxZoom", type: "number", label: "最大缩放" },
-            { field: "zoom", type: "number", label: "缩放级别" },
-            { field: "zoomControl", type: "boolean", label: "缩放控制" },
-            { field: "isSite", type: "boolean", label: "卫星图层" },
-        ],
-        anchor: [
-            { field: "center", type: "latlng", label: "地图中心", default: { lat: 0, lng: 0 } },
-            { field: "zoom", type: "number", label: "缩放级别", default: 12 },
-        ],
         supportElementTypes: {
             [ElementType.Point]: [
                 { field: "icon", type: "icon", label: "图标" },
@@ -109,14 +95,6 @@ export const SceneType = {
     ThreeD: {
         name: "ThreeD",
         dir: "3d",
-        conf: [
-            { field: "camera", type: "vector3", label: "镜头位置" },
-            { field: "target", type: "vector3", label: "镜头目标" },
-        ],
-        anchor: [
-            { field: "camera", type: "vector3", label: "镜头位置", default: { x: 0, y: 0, z: 0 } },
-            { field: "target", type: "vector3", label: "镜头目标", default: { x: 0, y: 0, z: 0 } },
-        ],
         supportElementTypes: {
             [ElementType.Point]: [
                 { field: "icon", type: "icon", label: "图标" },
@@ -138,8 +116,6 @@ export const SceneType = {
     TwoD: {
         name: "TwoD",
         dir: "2d",
-        conf: [{ field: "position", type: "vector2", label: "镜头位置" }],
-        anchor: [{ field: "position", type: "vector2", label: "镜头位置", default: { x: 0, y: 0 } }],
         supportElementTypes: {
             [ElementType.Point]: [
                 { field: "icon", type: "icon", label: "图标" },
@@ -190,6 +166,7 @@ export const InteractionType = {
     Hover: "Hover",
     HoverOut: "HoverOut",
     Custom: "Custom",
+    Timer: "Timer", // 循环
 };
 
 /**
@@ -200,55 +177,40 @@ export const InteractionType = {
 export const ActionTypes = {
     PopComponent: {
         name: "PopComponent",
-        label: "弹窗组件",
-        scheme: [
-            { field: "name", type: "string", label: "组件名称" },
-            { field: "props", type: "object", label: "组件属性" },
-        ],
+        scheme: ["name", "props"],
     }, // 弹窗
     OpenUrl: {
         name: "OpenUrl",
-        label: "打开地址",
-        scheme: [{ field: "url", type: "string", label: "地址" }],
+        scheme: ["url"],
     }, // 打开地址
     ChangeColor: {
         name: "ChangeColor",
-        label: "修改颜色",
-        scheme: [{ field: "color", type: "string", label: "颜色" }],
+        scheme: ["color"],
     }, // 修改颜色
     ExecuteScript: {
         name: "ExecuteScript",
-        label: "执行脚本",
-        scheme: [{ field: "url", type: "string", label: "脚本地址" }],
+        scheme: ["url"],
     }, // 执行脚本
     ChangeScene: {
         name: "ChangeScene",
-        label: "切换场景",
-        scheme: [{ field: "sceneId", type: "string", label: "场景id" }],
+        scheme: ["sceneId"],
     }, // 切换场景
     ChangeAnchor: {
         name: "ChangeAnchor",
-        label: "切换锚点",
-        scheme: [{ field: "anchorId", type: "string", label: "锚点id" }],
+        scheme: ["anchorId"],
     }, // 切换锚点
     ChangePosition: {
         name: "ChangePosition",
-        label: "修改图元位置",
-        scheme: [{ field: "position", type: "object", label: "位置" }],
+        scheme: ["position"],
     }, // 修改图元位置
     ChangeVisible: {
         name: "ChangeVisible",
-        label: "显示/隐藏图元",
-        scheme: [{ field: "visible", type: "boolean", label: "可见" }],
+        scheme: ["visible"],
     }, // 显示/隐藏图元
     RunEleBehavior: {
         name: "RunEleBehavior",
-        label: "执行自定义行为",
-        scheme: [
-            { field: "behaviorName", type: "string", label: "行为名称" },
-            { field: "behaviorParam", type: "object", label: "行为参数" },
-        ],
-    }, // 执行自定义行为
+        scheme: ["behaviorName", "behaviorParam"],
+    }, // 显示/隐藏图元
 };
 
 /**

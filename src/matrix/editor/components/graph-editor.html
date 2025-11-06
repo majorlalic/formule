@@ -4,54 +4,40 @@
             <div class="label">{{attr.label}}:</div>
             <div class="form">
                 <!-- vector3 -->
-                <div v-if="attr.type == 'vector3'" class="sub-attr">
+                <div v-if="attr.type == 'vector3'" class="vector3">
                     <div>
                         <div>x:</div>
-                        <a-input-number
-                            v-model="graph.position.x"
-                        ></a-input-number>
+                        <a-input-number v-model="graph.position.x"></a-input-number>
                     </div>
                     <div>
                         <div>y:</div>
-                        <a-input-number
-                            v-model="graph.position.y"
-                        ></a-input-number>
+                        <a-input-number v-model="graph.position.y"></a-input-number>
                     </div>
                     <div>
                         <div>z:</div>
-                        <a-input-number
-                            v-model="graph.position.z"
-                        ></a-input-number>
+                        <a-input-number v-model="graph.position.z"></a-input-number>
                     </div>
                 </div>
                 <!-- vector2 -->
-                <div v-if="attr.type == 'vector2'" class="sub-attr">
+                <div v-if="attr.type == 'vector2'" class="vector3">
                     <div>
                         <div>x:</div>
-                        <a-input-number
-                            v-model="graph.position.x"
-                        ></a-input-number>
+                        <a-input-number v-model="graph.position.x"></a-input-number>
                     </div>
                     <div>
                         <div>y:</div>
-                        <a-input-number
-                            v-model="graph.position.y"
-                        ></a-input-number>
+                        <a-input-number v-model="graph.position.y"></a-input-number>
                     </div>
                 </div>
                 <!-- latlng -->
-                <div v-if="attr.type == 'latlng'" class="sub-attr">
+                <div v-if="attr.type == 'latlng'" class="vector3">
                     <div>
                         <div>lat:</div>
-                        <a-input-number
-                            v-model="graph.position.lat"
-                        ></a-input-number>
+                        <a-input-number v-model="graph.position.lat"></a-input-number>
                     </div>
                     <div>
                         <div>lng:</div>
-                        <a-input-number
-                            v-model="graph.position.lng"
-                        ></a-input-number>
+                        <a-input-number v-model="graph.position.lng"></a-input-number>
                     </div>
                 </div>
                 <!-- string -->
@@ -60,47 +46,23 @@
                 </div>
                 <!-- number -->
                 <div v-else-if="attr.type == 'number'">
-                    <a-input-number
-                        v-model="graph[attr.field]"
-                    ></a-input-number>
+                    <a-input-number v-model="graph[attr.field]"></a-input-number>
                 </div>
                 <!-- icon -->
                 <div v-else-if="attr.type == 'icon' && iconOptions.length> 0">
-                    <a-select
-                        v-model="graph[attr.field]"
-                        :options="iconOptions"
-                    >
-                    </a-select>
+                    <a-select v-model="graph[attr.field]" :options="iconOptions"> </a-select>
                 </div>
                 <!-- vector3-array -->
                 <div v-else-if="attr.type == 'vector3-array'">
-                    <a-button
-                        type="primary"
-                        icon="edit"
-                        shape="round"
-                        @click="editPositions(attr.type)"
-                        >编辑</a-button
-                    >
+                    <a-button type="primary" icon="edit" shape="round" @click="editPositions(attr.type)">编辑</a-button>
                 </div>
                 <!-- latlng-array -->
                 <div v-else-if="attr.type == 'latlng-array'">
-                    <a-button
-                        type="primary"
-                        icon="edit"
-                        shape="round"
-                        @click="editPositions(attr.type)"
-                        >编辑</a-button
-                    >
+                    <a-button type="primary" icon="edit" shape="round" @click="editPositions(attr.type)">编辑</a-button>
                 </div>
                 <!-- vector2-array -->
                 <div v-else-if="attr.type == 'vector2-array'">
-                    <a-button
-                        type="primary"
-                        icon="edit"
-                        shape="round"
-                        @click="editPositions(attr.type)"
-                        >编辑</a-button
-                    >
+                    <a-button type="primary" icon="edit" shape="round" @click="editPositions(attr.type)">编辑</a-button>
                 </div>
             </div>
         </div>
@@ -155,28 +117,15 @@
                 );
             },
             initAttrs() {
-                if (
-                    !!!this.sceneType ||
-                    !SceneType.hasOwnProperty(this.sceneType)
-                ) {
-                    this.$message.error(
-                        `尚未配置[${this.sceneType}]类型的场景`
-                    );
+                if (!!!this.sceneType || !SceneType.hasOwnProperty(this.sceneType)) {
+                    this.$message.error(`尚未配置[${this.sceneType}]类型的场景`);
                     return;
                 }
-                if (
-                    !!!this.eleType ||
-                    !SceneType[
-                        this.sceneType
-                    ].supportElementTypes.hasOwnProperty(this.eleType)
-                ) {
-                    this.$message.error(
-                        `${this.sceneType}尚未配置[${this.eleType}]类型的图元`
-                    );
+                if (!!!this.eleType || !SceneType[this.sceneType].supportElementTypes.hasOwnProperty(this.eleType)) {
+                    this.$message.error(`${this.sceneType}尚未配置[${this.eleType}]类型的图元`);
                     return;
                 }
-                let attrs =
-                    SceneType[this.sceneType].supportElementTypes[this.eleType];
+                let attrs = SceneType[this.sceneType].supportElementTypes[this.eleType];
                 this.attrs = attrs;
                 console.log(this.attrs);
             },
@@ -202,9 +151,8 @@
         padding: 10px 10px 10px 0;
         border-radius: 4px;
 
-        .ant-input-number,
-        .ant-input {
-            width: 100% !important;
+        .ant-input-number, .ant-input{
+            width: 100%!important;
         }
 
         & > div {
@@ -212,27 +160,13 @@
 
             .label {
                 width: 70px;
-                justify-content: center;
-                display: flex;
-                align-items: center;
+                text-align: center;
             }
 
             .form {
                 flex: 1;
 
-                .sub-attr::before {
-                    content: "{";
-                    position: absolute;
-                    left: -8px;
-                    top: 50%;
-                    transform: translateY(-50%);
-                    font-size: 2.5em; 
-                    font-family: Constantia, serif;
-                    line-height: 1;
-                }
-
-                .sub-attr {
-                    position: relative;
+                .vector3 {
                     margin-top: 4px;
                     display: flex;
                     flex-direction: column;
@@ -242,8 +176,7 @@
                         display: flex;
 
                         & > div:first-child {
-                            padding-left: 10px;
-                            width: 40px;
+                            width: 30px;
                             line-height: 34px;
                         }
 

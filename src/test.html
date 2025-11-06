@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Cesium GLTF 加载示例</title>
+    <script src="https://cdn.jsdelivr.net/npm/cesium@1.133.0/Build/Cesium/Cesium.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cesium@1.133.0/Build/Cesium/Widgets/widgets.css">
+    <style>
+        html, body, #cesiumContainer {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="cesiumContainer"></div>
+    <script>
+        const viewer = new Cesium.Viewer('cesiumContainer', {
+            shouldAnimate: true
+        });
+
+        const position = Cesium.Cartesian3.fromDegrees(114.3, 30.6, 0);
+
+        const modelEntity = viewer.entities.add({
+            name: 'Cornell Box',
+            position: position,
+            model: {
+                uri: 'https://example.com/models/CornellBox.glb',
+                scale: 10.0,
+                minimumPixelSize: 128
+            }
+        });
+
+        viewer.zoomTo(modelEntity);
+
+        const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+        handler.setInputAction(function (movement) {
+            const ray = viewer.camera.getPickRay(movement.endPosition);
+            const hit = viewer.scene.globe.pick(ray, viewer.scene);
+            if (hit) {
+                const cartographic = Cesium.Cartographic.fromCartesian(hit);
+                console.log('点击位置经纬度：', cartographic.longitude, cartographic.latitude);
+            }
+        }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+    </script>
+</body>
+</html>
