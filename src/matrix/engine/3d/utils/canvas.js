@@ -1,4 +1,4 @@
-import { ICONS, Colors } from "../../../js/const.js";
+import { ICONS, Colors } from "../../../common/core/const.js";
 
 /**
  * 点标记半径

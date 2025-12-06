@@ -1,12 +1,8 @@
-import { SceneDef } from "../../js/def/sceneDef.js";
-import { ElementType, InteractionType } from "../../js/const.js";
-import { ElementDef } from "../../js/def/element/elementDef.js";
-import Picture from "./element/picture.js";
-import Point from "./element/point.js";
-import Polyline from "./element/polyline.js";
-import Polygon from "./element/polygon.js";
-import Label from "./element/label.js";
-import PointLine from "./element/pointLine.js";
+import { SceneDef } from "../../common/core/def/sceneDef.js";
+import { InteractionType, SceneType } from "../../common/core/const.js";
+import { ElementDef } from "../../common/core/def/elementDef.js";
+import { createElement } from "../../common/core/registry/elementRegistry.js";
+import "./element/index.js"; // 注册图元
 /**
  * 二维场景
  * 使用konva实现 https://konvajs.org/
@@ -51,8 +47,98 @@ export default class Scene2d extends SceneDef {
      * @param {Object} conf
      */
     _initConf(conf) {
-        // let { background } = conf;
-        // this._initBackground(background);
+        if (conf.draggable) {
+            this._openDragAndZoom(this.stage, conf?.dragDirection);
+        }
+    }
+
+    _openDragAndZoom(stage, dragDirection = ['x','y']) {
+        let options = {};
+        const scaleBy = options.scaleBy || 1.05;
+        const minScale = options.minScale || 0.2;
+        const maxScale = options.maxScale || 5;
+        const enableAnimation = options.enableAnimation !== false; // 默认开启动画
+        const animationDuration = options.animationDuration || 0.2;
+
+        // 启用拖拽
+        stage.draggable(true);
+
+        let containX = dragDirection.includes('x');
+        let containY = dragDirection.includes('y');
+        stage.dragBoundFunc(function (pos) {
+            return {
+                x: containX ? pos.x : this.x(), 
+                y: containY ? pos.y : this.y(),
+            };
+        });
+
+        // 鼠标滚轮缩放
+        stage.on("wheel", (e) => {
+            e.evt.preventDefault();
+
+            const oldScale = stage.scaleX();
+            const pointer = stage.getPointerPosition();
+            const direction = e.evt.deltaY > 0 ? -1 : 1;
+            let newScale =
+                direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
+            newScale = Math.max(minScale, Math.min(maxScale, newScale));
+
+            // 计算鼠标点对应的世界坐标
+            const mousePointTo = {
+                x: (pointer.x - stage.x()) / oldScale,
+                y: (pointer.y - stage.y()) / oldScale,
+            };
+
+            // 新位置：保证缩放后鼠标指向不偏移
+            const newPos = {
+                x: pointer.x - mousePointTo.x * newScale,
+                y: pointer.y - mousePointTo.y * newScale,
+            };
+
+            if (enableAnimation) {
+                // 平滑动画缩放
+                if (stage._zoomTween) stage._zoomTween.pause();
+
+                const tween = new Konva.Tween({
+                    node: stage,
+                    duration: animationDuration,
+                    scaleX: newScale,
+                    scaleY: newScale,
+                    x: newPos.x,
+                    y: newPos.y,
+                    easing: Konva.Easings.EaseInOut,
+                    onFinish: () => (stage._zoomTween = null),
+                });
+
+                stage._zoomTween = tween;
+                tween.play();
+            } else {
+                // 立即缩放
+                stage.scale({ x: newScale, y: newScale });
+                stage.position(newPos);
+                stage.batchDraw();
+            }
+        });
+
+        // 双击重置视图
+        stage.on("dblclick", () => {
+            if (enableAnimation) {
+                const tween = new Konva.Tween({
+                    node: stage,
+                    duration: animationDuration,
+                    scaleX: 1,
+                    scaleY: 1,
+                    x: 0,
+                    y: 0,
+                    easing: Konva.Easings.EaseInOut,
+                });
+                tween.play();
+            } else {
+                stage.scale({ x: 1, y: 1 });
+                stage.position({ x: 0, y: 0 });
+                stage.batchDraw();
+            }
+        });
     }
 
     /**
@@ -61,32 +147,8 @@ export default class Scene2d extends SceneDef {
      */
     _initElements(elements) {
         elements.forEach((ele) => {
-            let type = ele.type;
-
-            let target;
-            switch (type) {
-                case ElementType.Point:
-                    target = new Point(ele);
-                    break;
-                case ElementType.Polyline:
-                    target = new Polyline(ele);
-                    break;
-                case ElementType.Polygon:
-                    target = new Polygon(ele);
-                    break;
-                case ElementType.Label:
-                    target = new Label(ele);
-                    break;
-                case ElementType.Picture:
-                    target = new Picture(ele);
-                    break;
-                case ElementType.PointLine:
-                    target = new PointLine(ele);
-                    break;    
-                default:
-                    console.warn(`gis场景暂未实现${type}类型`);
-                    return;
-            }
+            const target = createElement(SceneType.TwoD, ele, { scene: this });
+            if (!target) return;
             target.group.zIndex = ele.zIndex || 1;
             this.eleLayer.add(target.group);
             this.eleMap.set(ele.id, target);

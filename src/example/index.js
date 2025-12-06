@@ -1,9 +1,16 @@
-import Resolver from "/matrix/js/resolver.js";
-import { scenes } from "/matrix/js/mock.js";
+import Resolver from "/matrix/common/core/resolver.js";
 import EventBusWorker from "/common/js/eventBus/eventBusWorker.js";
-import { ModuleNames, EventNames, Colors } from "/matrix/js/const.js";
-import { loadVueComponent } from "/matrix/js/vue-component-loader.js";
-import { InteractionType, PopComponents, ActionTypes, ElementType } from "../matrix/js/const.js";
+import { ModuleNames, EventNames, Colors } from "/matrix/common/core/const.js";
+import { loadVueComponent } from "/matrix/common/core/vue-component-loader.js";
+import {
+    InteractionType,
+    PopComponent,
+    ActionType,
+    ElementType,
+    SceneType,
+} from "../matrix/common/core/const.js";
+// import { scene } from "./mock.js";
+import { scenes } from "/matrix/common/core/mock.js";
 
 const eventBus = EventBusWorker.getInstance(ModuleNames.Scene);
 
@@ -25,13 +32,13 @@ var app = new Vue({
     created: function () {},
     mounted: function () {
         // TODO 模拟数据 接口实现
-        let scene = scenes[0];
+        let scene = scenes[1];
         resolver = new Resolver("scene", scene);
         this.layers = scene?.layers || [];
 
         let presures = this.presure(0);
-        console.log("presures",presures);
-        
+        console.log("presures", presures);
+
         scene.elements = [...scene.elements, ...presures];
 
         setTimeout(() => {
@@ -39,9 +46,17 @@ var app = new Vue({
         }, 3000);
     },
     methods: {
+        test(x,y){
+            eventBus.postMessage(EventNames.CenterChange, {
+                x,
+                y
+            });
+        },
         layerChange(layer) {
             layer.checked = !layer.checked;
-            let checked = this.layers.filter((i) => i.checked).map((i) => i.name);
+            let checked = this.layers
+                .filter((i) => i.checked)
+                .map((i) => i.name);
             eventBus.postMessage(EventNames.LayerChange, checked);
         },
         mockData() {
@@ -106,10 +121,9 @@ var app = new Vue({
                     trigger: [
                         {
                             type: InteractionType.Click,
-                            condition: "",
-                            actionType: ActionTypes.PopComponent.name,
+                            actionType: ActionType.PopComponent,
                             actionOptions: {
-                                name: "line-chart",
+                                name: "LineChart",
                                 props: {
                                     bussinessId: "${bussinessId}",
                                     bussinessType: "",

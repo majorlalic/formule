@@ -1,8 +1,8 @@
 import { getCanvasTextWidth, moveToWorldPosition } from "../utils/tools.js";
 import { getNameTexture } from "../utils/canvas.js";
 import * as THREE from "three";
-import { ElementDef } from "../../../js/def/element/elementDef.js";
-import { NameModes } from "../../../js/const.js";
+import { ElementDef } from "../../../common/core/def/elementDef.js";
+import { NameModes } from "../../../common/core/const.js";
 
 const NameHeight = 50;
 /**

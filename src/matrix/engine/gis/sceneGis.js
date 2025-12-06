@@ -1,11 +1,9 @@
-import { SceneDef } from "../../js/def/sceneDef.js";
-import { ElementType, InteractionType } from "../../js/const.js";
-import { ElementDef } from "../../js/def/element/elementDef.js";
-import Point from "./element/point.js";
-import Polyline from "./element/polyline.js";
-import Polygon from "./element/polygon.js";
-import Label from "./element/label.js";
-import CirclePoint from "./element/circlePoint.js";
+import { SceneDef } from "../../common/core/def/sceneDef.js";
+import { InteractionType, SceneType } from "../../common/core/const.js";
+import { ElementDef } from "../../common/core/def/elementDef.js";
+
+import { createElement } from "../../common/core/registry/elementRegistry.js";
+import "./element/index.js"; // 注册图元
 /**
  * 二维场景
  * 使用konva实现 https://konvajs.org/
@@ -76,29 +74,8 @@ export default class SceneGis extends SceneDef {
      */
     _initElements(elements) {
         elements.forEach((ele) => {
-            let type = ele.type;
-
-            let target;
-            switch (type) {
-                case ElementType.Point:
-                    target = new Point(ele, this.map);
-                    break;
-                case ElementType.Polyline:
-                    target = new Polyline(ele, this.map);
-                    break;
-                case ElementType.Polygon:
-                    target = new Polygon(ele, this.map);
-                    break;
-                case ElementType.Label:
-                    target = new Label(ele, this.map);
-                    break;
-                case ElementType.CirclePoint:
-                    target = new CirclePoint(ele, this.map);
-                    break;
-                default:
-                    console.warn(`gis场景暂未实现${type}类型`);
-                    return;
-            }
+            const target = createElement(SceneType.Gis, ele, { scene: this });
+            if (!target) return;
 
             this.eleGroup.addLayer(target.group);
             this.eleMap.set(ele.id, target);

@@ -1,17 +1,14 @@
-import { SceneDef } from "../../js/def/sceneDef.js";
-import { ElementType, InteractionType } from "../../js/const.js";
+import { SceneDef } from "../../common/core/def/sceneDef.js";
+import { InteractionType, SceneType } from "../../common/core/const.js";
 import { init } from "./init.js";
 
 import * as THREE from "three";
 import { TWEEN } from "three/addons/libs/tween.module.min.js";
-
-import Point from "./element/point.js";
-import Polygon from "./element/polygon.js";
-import Polyline from "./element/polyline.js";
-import Label from "./element/label.js";
 import EventManager from "./utils/eventManager.js";
-import { ElementDef } from "../../js/def/element/elementDef.js";
-import Modal from "./element/modal.js";
+import { ElementDef } from "../../common/core/def/elementDef.js";
+
+import { createElement } from "../../common/core/registry/elementRegistry.js";
+import "./element/index.js"; // 注册图元
 
 /**
  * 三维场景
@@ -54,32 +51,10 @@ export default class Scene3d extends SceneDef {
      * @param {Array<ElementDef>} elements
      */
     _initElements(elements) {
-        
-
         elements.forEach((ele) => {
-            let type = ele.type;
+            const target = createElement(SceneType.ThreeD, ele, { scene: this });
+            if (!target) return;
 
-            let target;
-            switch (type) {
-                case ElementType.Point:
-                    target = new Point(ele);
-                    break;
-                case ElementType.Polyline:
-                    target = new Polyline(ele);
-                    break;
-                case ElementType.Polygon:
-                    target = new Polygon(ele);
-                    break;
-                case ElementType.Label:
-                    target = new Label(ele);
-                    break;
-                case ElementType.Modal:
-                    target = new Modal(ele);
-                    break;
-                default:
-                    console.warn(`gis场景暂未实现${type}类型`);
-                    return;
-            }
             this.eleGroup.add(target.group);
             this.eleMap.set(ele.id, target);
 

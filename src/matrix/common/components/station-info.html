@@ -1,0 +1,94 @@
+<template>
+    <matrix-card :title="name" :center-x="centerX" :center-y="centerY" width="260" height="140">
+        <template v-slot:content>
+            <div class="station-info">
+                <div class="attr-item">
+                    <div>分公司</div>
+                    <div>{{company}}</div>
+                </div>
+                <div class="attr-item">
+                    <div>作业区</div>
+                    <div>{{zone}}</div>
+                </div>
+                <div class="attr-item">
+                    <div>地址</div>
+                    <div>{{address}}</div>
+                </div>
+            </div>
+        </template>
+    </matrix-card>
+</template>
+
+<script>
+    //@ sourceURL=station-info.js
+    import { loadVueComponent } from "/matrix/common/core/vue-component-loader.js";
+
+    export default {
+        props: ["id", "name", "company", "zone", "address", "centerX", "centerY", "width", "height", "theme"],
+        inject: ["eventBus"],
+        data() {
+            return {};
+        },
+        components: {
+            "matrix-card": () => loadVueComponent("/matrix/common/components/matrix-card.html"),
+        },
+        created() {},
+        mounted() {
+            console.log(this.eventBus);
+
+            this.$nextTick(() => {});
+            setTimeout(() => {
+                this.initChart();
+            }, 300);
+        },
+        methods: {
+            initChart(xArr, yArr) {
+                var myChart = echarts.init(document.getElementById("line-chart" + this.id));
+                option = {
+                    xAxis: {
+                        type: "category",
+                        data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+                    },
+                    yAxis: {
+                        type: "value",
+                    },
+                    series: [
+                        {
+                            data: [820, 932, 901, 934, 1290, 1330, 1320],
+                            type: "line",
+                            smooth: true,
+                        },
+                    ],
+                    grid: {
+                        left: "12%",
+                        right: "8%",
+                        top: "8%",
+                        bottom: "12%",
+                    },
+                };
+                myChart.setOption(option);
+            },
+        },
+    };
+</script>
+
+<style lang="less">
+    .station-info {
+        padding: 10px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 100%;
+
+        .attr-item {
+            display: flex;
+            & > div:nth-child(odd) {
+                width: 36%;
+            }
+            & > div:nth-child(even) {
+                width: 64%;
+            }
+        }
+    }
+</style>

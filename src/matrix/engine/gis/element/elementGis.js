@@ -1,5 +1,5 @@
-import { NameModes } from "../../../js/const.js";
-import { ElementDef } from "../../../js/def/element/elementDef.js";
+import { NameModes } from "../../../common/core/const.js";
+import { ElementDef } from "../../../common/core/def/elementDef.js";
 
 /**
  * 二维图元基类

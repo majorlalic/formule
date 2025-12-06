@@ -1,5 +1,5 @@
 import Element2d from "./element2d.js";
-import { hexToRgba } from "../../../js/utils.js";
+import { hexToRgba } from "../../../common/core/utils.js";
 /**
  * 面
  * {
