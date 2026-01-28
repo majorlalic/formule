@@ -6,7 +6,7 @@ import {
     Colors,
     NameModes,
     ElementBehavior,
-} from "/matrix/core/const.js";
+} from "/matrix/common/core/const.js";
 
 export const scene = {
     id: "9871231235",
@@ -98,28 +98,37 @@ export const scene = {
                 value: "初始文字",
             },
             data: {
-                visible: true,
-                color: "#fff",
                 value: "${dataPoint1}",
             },
             conf: {
                 nameMode: NameModes.Hover,
-                trigger: [
+                rules: [
                     {
-                        type: InteractionType.Custom,
-
-                        actionType: ActionType.RunEleBehavior.name,
-                        actionOptions: {
-                            behaviorName: "changeValue",
-                            // behaviorParam: ['${data.value}'],
-                            behaviorParam: {
-                                value: "${data.value}",
-                            },
+                        when: "data.value != null",
+                        do: "changeValue",
+                        params: {
+                            value: "${data.value}",
+                        },
+                    },
+                    {
+                        when: 'data.value > 10',
+                        do: "changeColor",
+                        params: {
+                            color: "#ff3040",
+                        },
+                    },
+                    {
+                        when: 'data.value > 15',
+                        do: "changeColor",
+                        params: {
+                            color: "#3040ff",
                         },
                     },
                 ],
+                trigger: [],
             },
         },
     ],
     anchors: [],
 };
+    

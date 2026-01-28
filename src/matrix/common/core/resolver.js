@@ -1,9 +1,9 @@
-import { ModuleNames, EventNames, InteractionType } from "./const.js";
+import { ModuleNames, EventNames, InteractionType, ActionType } from "./const.js";
 import EventBusWorker from "/common/js/eventBus/eventBusWorker.js";
 import { SceneDef } from "./def/sceneDef.js";
 import { ElementDef } from "./def/elementDef.js";
 import { Action, ElementData } from "./def/typeDef.js";
-import { collectPlaceholders, setData, initFrame, deepClone } from "./utils.js";
+import { collectPlaceholders, setData, initFrame, deepClone, evalRule } from "./utils.js";
 import { ActionDispatcher } from "./action-dispatcher.js";
 
 const eventBus = EventBusWorker.getInstance(ModuleNames.Resolver);
@@ -115,22 +115,22 @@ export default class Resolver {
      * 接收多种形式的数据变动
      * @param {*} datas 
      * [
-            {
-                id: "129846712984321",
-                data: {
-                    valueA: 1,
-                },
-            },
-            {
-                bussinessId: "19824718923",
-                data: {
-                    valueB: 2,
-                },
-            },
-            {
-                "${dataPoint1}": 124124142131,
-            },
-        ];
+     *     {
+     *         id: "129846712984321",
+     *         data: {
+     *             valueA: 1,
+     *         },
+     *     },
+     *     {
+     *         bussinessId: "19824718923",
+     *         data: {
+     *             valueB: 2,
+     *         },
+     *     },
+     *     {
+     *         "${dataPoint1}": 124124142131,
+     *     },
+     * ];
      */
     _handleData(datas) {
         let eleDatas = [];
@@ -140,6 +140,7 @@ export default class Resolver {
                 eleDatas.push({
                     id: item.id,
                     data: item.data,
+                    payload: item.data,
                 });
             } else if ("bussinessId" in item && "data" in item) {
                 let id = this.bussinessIdMap.get(item.bussinessId);
@@ -147,6 +148,7 @@ export default class Resolver {
                     eleDatas.push({
                         id: id,
                         data: item.data,
+                        payload: item.data,
                     });
                 }
             } else if (keys.find((key) => /^\$\{.+\}$/.test(key))) {
@@ -161,6 +163,9 @@ export default class Resolver {
                             let eleData = {
                                 id: ele.id,
                                 data,
+                                payload: {
+                                    [keyItem]: item["${" + keyItem + "}"],
+                                },
                             };
                             eleDatas.push(eleData);
                         });
@@ -171,7 +176,7 @@ export default class Resolver {
             }
         });
 
-        // 处理自定义事件
+        // 处理自定义事件和规则
         this._handleCustomEvent(eleDatas);
 
         // 统一发送给场景去处理
@@ -188,11 +193,11 @@ export default class Resolver {
     }
 
     /**
-     * 处理自定义事件
+     * 处理自定义事件与规则
      * @param {Array<ElementData>} datas
      */
     _handleCustomEvent(eleDatas) {
-        eleDatas.forEach(({ id, data }) => {
+        eleDatas.forEach(({ id, data, payload }) => {
             let ele = this.eleMap.get(id);
             // 更新ele属性
             if (!ele) {
@@ -204,6 +209,28 @@ export default class Resolver {
             let actions = ele?.conf?.trigger.filter((i) => i?.type == InteractionType.Custom) || [];
             actions.forEach((action) => {
                 this._handeAction(action.actionType, ele, null, action);
+            });
+
+            // 处理规则
+            let rules = ele?.conf?.rules || [];
+            rules.forEach((rule) => {
+                if (!rule?.when || !rule?.do) {
+                    return;
+                }
+                const ok = evalRule(rule.when, {
+                    data: ele.data,
+                    payload: payload || {},
+                    ele,
+                });
+                if (!ok) return;
+                const action = {
+                    actionType: ActionType.RunEleBehavior,
+                    actionOptions: {
+                        behaviorName: rule.do,
+                        behaviorParam: rule.params || {},
+                    },
+                };
+                this._handeAction(ActionType.RunEleBehavior, ele, null, action);
             });
         });
     }

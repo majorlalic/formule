@@ -222,6 +222,33 @@ export const resolveMetaPlaceholders = (ele, data) => {
 };
 
 /**
+ * 执行规则表达式或脚本
+ * @param {string|function} expr 规则表达式或脚本
+ * @param {{data:Object,payload:Object,ele:Object}} context
+ * @returns {boolean}
+ */
+export const evalRule = (expr, context = {}) => {
+    if (typeof expr === "function") {
+        try {
+            return !!expr(context);
+        } catch (err) {
+            console.error("[evalRule] 规则函数执行失败:", err);
+            return false;
+        }
+    }
+    if (typeof expr !== "string" || !expr.trim()) return false;
+
+    const code = expr.trim();
+    try {
+        const fn = new Function("data", "payload", "ele", `return (${code});`);
+        return !!fn(context.data || {}, context.payload || {}, context.ele || {});
+    } catch (err) {
+        console.error("[evalRule] 规则表达式执行失败:", err);
+        return false;
+    }
+};
+
+/**
  * 判断数组是否有相同部分
  * @param {Array<Object>} arr1
  * @param {Array<Object>} arr2

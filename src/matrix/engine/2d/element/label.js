@@ -20,9 +20,10 @@ export default class Label extends Element2d {
         this.group.position(ele.graph.position);
     }
 
-    changeColor() {
+    changeColor(color) {
         if (this.text) {
-            this.text.fill(this.color);
+            this.color = color; 
+            this.text.fill(color);
         }
     }
 
