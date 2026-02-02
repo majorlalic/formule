@@ -1,4 +1,4 @@
-import { monitorAttr, setData, resolveMetaPlaceholders } from "../utils.js";
+import { setData } from "../utils.js";
 
 /**
  * 图元类定义

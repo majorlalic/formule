@@ -10,7 +10,7 @@ import {
     ElementBehaviorMeta,
     SceneType,
 } from "../const.js";
-import { checkProps, fillTemplate, hasSameElement } from "../utils.js";
+import { checkProps, hasSameElement } from "../utils.js";
 import { generateUUID } from "/common/js/utils.js";
 
 /**
@@ -177,11 +177,7 @@ export class SceneDef {
         let paramObj = {};
         for (const key in behaviorParam) {
             const param = behaviorParam[key];
-            if (typeof param === "string" && /\$\{[^}]+\}/.test(param)) {
-                paramObj[key] = fillTemplate(param, ele);
-            } else {
-                paramObj[key] = param;
-            }
+            paramObj[key] = param;
         }
 
         // TODO 如何保证参数的顺序

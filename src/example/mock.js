@@ -89,36 +89,40 @@ export const scene = {
             visible: true,
             layer: [],
             zIndex: 4,
-            type: ElementType.Label,
+            type: ElementType.Label,    
             graph: {
                 position: {
                     x: 422.5,
-                    y: 228.5,
+                    y: 228.5,  
                 },
                 value: "初始文字",
             },
             data: {
-                value: "${dataPoint1}",
+                value: "",
+                bussinessId: '123123123'
             },
+            bindings: [
+                { tag: "dataPoint1", to: "data.value" },
+            ],
             conf: {
                 nameMode: NameModes.Hover,
                 rules: [
-                    {
+                    {   
                         when: "data.value != null",
                         do: "changeValue",
                         params: {
-                            value: "${data.value}",
+                            value: "data.value",
                         },
                     },
                     {
-                        when: 'data.value > 10',
+                        when: "data.value > 10",
                         do: "changeColor",
                         params: {
                             color: "#ff3040",
                         },
                     },
                     {
-                        when: 'data.value > 15',
+                        when: "data.value > 15",
                         do: "changeColor",
                         params: {
                             color: "#3040ff",
@@ -126,6 +130,7 @@ export const scene = {
                     },
                 ],
                 trigger: [],
+                
             },
         },
     ],

@@ -5,7 +5,7 @@ import {
     PopComponentMeta,
     EventNames,
 } from "./const.js";
-import { checkProps, fillTemplate } from "./utils.js";
+import { checkProps } from "./utils.js";
 import { mountComponent } from "/matrix/common/core/vue-component-loader.js";
 import { ElementDef } from "./def/elementDef.js";
 import { Action } from "./def/typeDef.js";
@@ -150,12 +150,6 @@ export class ActionDispatcher {
         component.props.forEach((propKey) => {
             let propValue = ele.data[propKey] || "";
             // 填充占位符
-            if (
-                typeof propValue === "string" &&
-                /\$\{[^}]+\}/.test(propValue)
-            ) {
-                propValue = fillTemplate(propValue, ele);
-            }
             componentProps[propKey] = propValue;
         });
 
@@ -170,7 +164,6 @@ export class ActionDispatcher {
      */
     openUrl(ele, url = "") {
         // 填充占位符参数
-        url = fillTemplate(url, ele);
         window.open(url);
     }
 

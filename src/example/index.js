@@ -26,6 +26,7 @@ var app = new Vue({
     data: {
         orgId: "",
         layers: [],
+        count: 0,
     },
     components: {
         // "live-video": () => loadVueComponent("/matrix/components/live-video.html"),
@@ -34,7 +35,7 @@ var app = new Vue({
     mounted: function () {
         // TODO 模拟数据 接口实现
         // let scene = scenes[1];
-        
+
         resolver = new Resolver("scene", scene);
         this.layers = scene?.layers || [];
 
@@ -64,37 +65,22 @@ var app = new Vue({
         mockData() {
             let datas = [
                 {
-                    id: "5123163512",
-                    data: {
-                        visible: false,
-                        color: "#ff3040",
-                    },
-                },
-                {
-                    bussinessId: "19824718923",
-                    data: {
-                        color: "#7B7A82",
-                    },
-                },
-                {
-                    "${dataPoint1}": 0,
-                    "${testPoint3}": 14123123,
-                    "${testPoint4}": 5234123123,
-                    "${512116351141232-position}": 60,
+                    dataPoint1: ++this.count,
+                    testPoint3: moment().format("YYYY-MM-DD HH:mm:ss"),
+                    "129846712984321-state": this.count,
                 },
             ];
-
             eventBus.postMessage(EventNames.DataChange, datas);
-
-            this.count = 1;
-            this.mockDataPoint();
+            setTimeout(() => {
+                this.mockData();
+            }, 1000);
         },
         mockDataPoint() {
             let datas = [
                 {
-                    "${dataPoint1}": ++this.count,
-                    "${testPoint3}": moment().format("YYYY-MM-DD HH:mm:ss"),
-                    "${129846712984321-state}": this.count,
+                    dataPoint1: ++this.count,
+                    testPoint3: moment().format("YYYY-MM-DD HH:mm:ss"),
+                    "129846712984321-state": this.count,
                 },
             ];
             eventBus.postMessage(EventNames.DataChange, datas);

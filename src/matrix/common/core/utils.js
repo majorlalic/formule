@@ -3,32 +3,6 @@ import { ElementDef } from "./def/elementDef.js";
 import { SceneDef } from "./def/sceneDef.js";
 import { SceneType,SceneTypeMeta } from "./const.js";
 
-export const collectPlaceholders = (obj) => {
-    const regex = /\$\{([^}]+)\}/g;
-    const placeholders = [];
-
-    function recurse(current, path = []) {
-        if (Array.isArray(current)) {
-            current.forEach((item, i) => recurse(item, path.concat(i)));
-        } else if (typeof current === "object" && current !== null) {
-            for (const key in current) {
-                recurse(current[key], path.concat(key));
-            }
-        } else if (typeof current === "string") {
-            let match;
-            while ((match = regex.exec(current))) {
-                placeholders.push({
-                    path: [...path], // 复制路径
-                    key: match[1], // ${key} 中的 key
-                });
-            }
-        }
-    }
-
-    recurse(obj);
-    return placeholders;
-};
-
 /**
  * 批量更新属性
  * @param {ElementDef} obj
@@ -69,21 +43,6 @@ export const checkProps = (propObj, requireArr) => {
     if (!Array.isArray(requireArr)) return false;
 
     return requireArr.every((key) => propObj.hasOwnProperty(key));
-};
-
-/**
- * 用对象属性替换字符串中的 ${key} 占位符
- * @param {String} str - 含有占位符的字符串
- * @param {Object} obj - 用于替换的属性对象
- * @returns {String} - 替换后的字符串
- */
-export const fillTemplate = (str, obj) => {
-    return str.replace(/\$\{([\w$.]+)\}/g, (match, path) => {
-        const value = path.split(".").reduce((acc, key) => {
-            return acc && acc.hasOwnProperty(key) ? acc[key] : undefined;
-        }, obj);
-        return value !== undefined ? value : match; // 如果找不到，保留原占位符
-    });
 };
 
 /**
@@ -142,86 +101,6 @@ export const initFrame = (containerId, scene) => {
 };
 
 /**
- * 获取对象中value为${}结构的属性映射表, 并初始化使用了模板的属性
- * @param {ElementDef} ele 图元
- * @param {Map} handlerMap 属性变化的回调函数映射
- * @returns
- */
-export const monitorAttr = (ele, handlerMap) => {
-    const meta = new Map();
-
-    for (const [key, value] of Object.entries(ele)) {
-        if (typeof value === "string" && /\$\{[^}]+\}/.test(value)) {
-            meta.set(key, value);
-            fillTemplateSelf(ele, key, value);
-        }
-    }
-
-    for (const key of Object.keys(handlerMap)) {
-        let internalValue = ele[key];
-
-        Object.defineProperty(ele, key, {
-            get() {
-                return internalValue;
-            },
-            set(newVal) {
-                if (newVal !== internalValue) {
-                    internalValue = newVal;
-                    handlerMap[key]?.(); // 执行对应的回调
-                }
-            },
-            configurable: true,
-            enumerable: true,
-        });
-    }
-
-    return meta;
-};
-
-/**
- * 初始化属性中的占位符
- * @param {ElementDef} ele 图元
- * @param {String} key 属性key
- * @param {String} str 属性值
- */
-export const fillTemplateSelf = (ele, key, str) => {
-    // 提取 ${} 中的路径
-    const regex = /\$\{([^}]+)\}/g;
-    const matches = [...str.matchAll(regex)];
-
-    matches.forEach((match) => {
-        const path = match[1]; // 如 data.value
-
-        // 解析路径并获取对应属性值
-        const value = path.split(".").reduce((acc, key) => acc?.[key], ele);
-        // 如果属性没有占位符, 直接赋值
-        if (!regex.test(value)) {
-            ele[key] = str.replace(match[0], value);
-        }
-    });
-};
-
-export const resolveMetaPlaceholders = (ele, data) => {
-    // const resolved = {};
-
-    if (!(ele.meta instanceof Map)) return;
-
-    for (const [key, value] of ele.meta.entries()) {
-        const replaced = value.replace(/\$\{([^}]+)\}/g, (_, expression) => {
-            // const result = getValueByPath(data, expression);
-            const result = expression
-                .split(".")
-                .reduce((acc, key) => acc?.[key], data);
-            return result != null ? result : "";
-        });
-        // resolved[key] = replaced;
-        ele[key] = replaced;
-    }
-
-    // return resolved;
-};
-
-/**
  * 执行规则表达式或脚本
  * @param {string|function} expr 规则表达式或脚本
  * @param {{data:Object,payload:Object,ele:Object}} context
@@ -240,8 +119,19 @@ export const evalRule = (expr, context = {}) => {
 
     const code = expr.trim();
     try {
-        const fn = new Function("data", "payload", "ele", `return (${code});`);
-        return !!fn(context.data || {}, context.payload || {}, context.ele || {});
+        const fn = new Function(
+            "data",
+            "payload",
+            "ele",
+            "tag",
+            `return (${code});`
+        );
+        return !!fn(
+            context.data || {},
+            context.payload || {},
+            context.ele || {},
+            context.tag || (() => undefined)
+        );
     } catch (err) {
         console.error("[evalRule] 规则表达式执行失败:", err);
         return false;

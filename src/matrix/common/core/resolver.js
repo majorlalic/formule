@@ -3,8 +3,9 @@ import EventBusWorker from "/common/js/eventBus/eventBusWorker.js";
 import { SceneDef } from "./def/sceneDef.js";
 import { ElementDef } from "./def/elementDef.js";
 import { Action, ElementData } from "./def/typeDef.js";
-import { collectPlaceholders, setData, initFrame, deepClone, evalRule } from "./utils.js";
+import { setData, initFrame, deepClone, evalRule } from "./utils.js";
 import { ActionDispatcher } from "./action-dispatcher.js";
+import DataPointStore from "./data-point-store.js";
 
 const eventBus = EventBusWorker.getInstance(ModuleNames.Resolver);
 let actionDispatcher;
@@ -14,12 +15,10 @@ let actionDispatcher;
  * @author wujiaqi
  */
 export default class Resolver {
-    // 业务id映射
-    bussinessIdMap = new Map();
     // 图元id映射
     eleMap = new Map();
-    // 占位符映射
-    placeholderMap = new Map();
+    // 数据点绑定映射
+    bindingMap = new Map();
 
     /**
      * 初始化场景
@@ -33,6 +32,7 @@ export default class Resolver {
         this.containerId = containerId;
         this.eventBus = eventBus;
         this.scene = scene;
+        this.dataPointStore = new DataPointStore();
 
         // 初始化场景
         this.initScene(scene);
@@ -50,9 +50,8 @@ export default class Resolver {
     initScene(scene) {
         let cloneScene = deepClone(scene);
         // 重置图元映射
-        this.bussinessIdMap = new Map();
         this.eleMap = new Map();
-        this.placeholderMap = new Map();
+        this.bindingMap = new Map();
 
         initFrame(this.containerId, cloneScene).then(({ id, type, conf, elements }) => {
             eventBus.postMessage(EventNames.InitScene, conf, elements);
@@ -83,32 +82,22 @@ export default class Resolver {
      * @param {Array<ElementDef>} eles
      */
     _handleEleMap(eles) {
-        let map = new Map();
+        let bindingMap = new Map();
         eles.forEach((ele) => {
-            if (ele?.conf?.bussinessId) {
-                this.bussinessIdMap.set(ele.conf.bussinessId, ele.id);
-            }
-
-            // 从data和conf属性中获取占位属性
-            let placeholders = collectPlaceholders(ele.data);
-            placeholders.forEach(({ key, path }) => {
-                if (map.has(key)) {
-                    map.get(key).push({
-                        id: ele.id,
-                        path,
-                    });
-                } else {
-                    map.set(key, [
-                        {
-                            id: ele.id,
-                            path,
-                        },
-                    ]);
+            // 绑定数据点
+            (ele?.bindings || []).forEach((binding) => {
+                if (!binding?.tag || !binding?.to) return;
+                if (!bindingMap.has(binding.tag)) {
+                    bindingMap.set(binding.tag, []);
                 }
+                bindingMap.get(binding.tag).push({
+                    id: ele.id,
+                    to: binding.to,
+                });
             });
             this.eleMap.set(ele.id, ele);
         });
-        this.placeholderMap = map;
+        this.bindingMap = bindingMap;
     }
 
     /**
@@ -116,65 +105,24 @@ export default class Resolver {
      * @param {*} datas 
      * [
      *     {
-     *         id: "129846712984321",
-     *         data: {
-     *             valueA: 1,
-     *         },
-     *     },
-     *     {
-     *         bussinessId: "19824718923",
-     *         data: {
-     *             valueB: 2,
-     *         },
-     *     },
-     *     {
-     *         "${dataPoint1}": 124124142131,
+     *         "device.001.temp": 78.5,
+     *         "device.001.status": "online",
      *     },
      * ];
      */
     _handleData(datas) {
         let eleDatas = [];
+        let tagUpdates = {};
         datas.forEach((item, index) => {
             const keys = Object.keys(item);
-            if ("id" in item && "data" in item) {
-                eleDatas.push({
-                    id: item.id,
-                    data: item.data,
-                    payload: item.data,
-                });
-            } else if ("bussinessId" in item && "data" in item) {
-                let id = this.bussinessIdMap.get(item.bussinessId);
-                if (id) {
-                    eleDatas.push({
-                        id: id,
-                        data: item.data,
-                        payload: item.data,
-                    });
-                }
-            } else if (keys.find((key) => /^\$\{.+\}$/.test(key))) {
-                // key 是类似 ${xxx} 的格式
-                let arrs = keys.filter((key) => /^\$\{.+\}$/.test(key)).map((key) => key.match(/^\$\{(.+)\}$/)[1]);
-                arrs.forEach((keyItem) => {
-                    if (this.placeholderMap.has(keyItem)) {
-                        let eles = this.placeholderMap.get(keyItem);
-                        eles.forEach((ele) => {
-                            let data = {};
-                            data[ele.path.join("|")] = item["${" + keyItem + "}"];
-                            let eleData = {
-                                id: ele.id,
-                                data,
-                                payload: {
-                                    [keyItem]: item["${" + keyItem + "}"],
-                                },
-                            };
-                            eleDatas.push(eleData);
-                        });
-                    }
-                });
-            } else {
-                console.error(`${item} 是未知类型`);
-            }
+            keys.forEach((key) => {
+                tagUpdates[key] = item[key];
+            });
         });
+
+        // 数据点更新 -> 绑定映射为图元数据更新
+        let bindingDatas = this._handleTagUpdates(tagUpdates);
+        eleDatas = this._mergeEleDatas(eleDatas, bindingDatas);
 
         // 处理自定义事件和规则
         this._handleCustomEvent(eleDatas);
@@ -221,13 +169,19 @@ export default class Resolver {
                     data: ele.data,
                     payload: payload || {},
                     ele,
+                    tag: (key) => this.dataPointStore.get(key),
                 });
                 if (!ok) return;
+                const resolvedParams = this._resolveRuleParams(
+                    rule.params || {},
+                    ele,
+                    payload || {}
+                );
                 const action = {
                     actionType: ActionType.RunEleBehavior,
                     actionOptions: {
                         behaviorName: rule.do,
-                        behaviorParam: rule.params || {},
+                        behaviorParam: resolvedParams,
                     },
                 };
                 this._handeAction(ActionType.RunEleBehavior, ele, null, action);
@@ -245,5 +199,102 @@ export default class Resolver {
     _handeAction(type, ele, position, action = ele?.conf?.trigger.find((i) => i.type == type)) {
         // 给动作分发器处理
         actionDispatcher.dispatch(ele, action, position);
+    }
+
+    _normalizeDataPath(path) {
+        if (!path || typeof path !== "string") return null;
+        if (path.startsWith("data.")) {
+            return path.slice(5).replace(/\./g, "|");
+        }
+        if (path.startsWith("data|")) {
+            return path.slice(5);
+        }
+        return null;
+    }
+
+    _handleTagUpdates(tagUpdates) {
+        if (!tagUpdates || Object.keys(tagUpdates).length === 0) return [];
+        this.dataPointStore.bulkSet(tagUpdates);
+
+        let res = [];
+        Object.entries(tagUpdates).forEach(([tag, value]) => {
+            let bindings = this.bindingMap.get(tag) || [];
+            bindings.forEach(({ id, to }) => {
+                let dataPath = this._normalizeDataPath(to);
+                if (!dataPath) {
+                    console.warn(`bindings.to 仅支持 data 路径: ${to}`);
+                    return;
+                }
+                let data = {};
+                data[dataPath] = value;
+                res.push({
+                    id,
+                    data,
+                    payload: { [tag]: value },
+                });
+            });
+        });
+        return res;
+    }
+
+    _mergeEleDatas(listA = [], listB = []) {
+        let map = new Map();
+        const add = (item) => {
+            if (!item?.id) return;
+            if (!map.has(item.id)) {
+                map.set(item.id, {
+                    id: item.id,
+                    data: {},
+                    payload: {},
+                });
+            }
+            let target = map.get(item.id);
+            if (item.data) {
+                Object.assign(target.data, item.data);
+            }
+            if (item.payload) {
+                Object.assign(target.payload, item.payload);
+            }
+        };
+        listA.forEach(add);
+        listB.forEach(add);
+        return Array.from(map.values());
+    }
+
+    _resolveRuleParams(params, ele, payload) {
+        const resolveValue = (value) => {
+            if (typeof value !== "string") return value;
+            if (value.startsWith("data.")) {
+                return this._getValueByDotPath(ele.data, value.slice(5));
+            }
+            if (value.startsWith("payload.")) {
+                return this._getValueByDotPath(payload, value.slice(8));
+            }
+            if (value.startsWith("tag.")) {
+                return this.dataPointStore.get(value.slice(4));
+            }
+            return value;
+        };
+
+        const walk = (input) => {
+            if (Array.isArray(input)) {
+                return input.map((item) => walk(item));
+            }
+            if (input && typeof input === "object") {
+                const out = {};
+                Object.keys(input).forEach((key) => {
+                    out[key] = walk(input[key]);
+                });
+                return out;
+            }
+            return resolveValue(input);
+        };
+
+        return walk(params);
+    }
+
+    _getValueByDotPath(obj, path) {
+        if (!path) return undefined;
+        return path.split(".").reduce((acc, key) => acc?.[key], obj);
     }
 }

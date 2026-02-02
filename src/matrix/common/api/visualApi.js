@@ -5,7 +5,7 @@ import { scenes } from "../core/mock.js";
 
 class VisualApi {
     constructor() {
-        this._urlPrefix = getServerUrl(SERVERS.SECURITY);
+        // this._urlPrefix = getServerUrl(SERVERS.SECURITY);
     }
 
     getAreaTree = () => {
