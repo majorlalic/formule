@@ -19,6 +19,8 @@ export default class Resolver {
     eleMap = new Map();
     // 数据点绑定映射
     bindingMap = new Map();
+    // 数据点订阅取消函数
+    bindingUnsubs = [];
 
     /**
      * 初始化场景
@@ -52,6 +54,7 @@ export default class Resolver {
         // 重置图元映射
         this.eleMap = new Map();
         this.bindingMap = new Map();
+        this._clearBindingSubscriptions();
 
         initFrame(this.containerId, cloneScene).then(({ id, type, conf, elements }) => {
             eventBus.postMessage(EventNames.InitScene, conf, elements);
@@ -93,11 +96,13 @@ export default class Resolver {
                 bindingMap.get(binding.tag).push({
                     id: ele.id,
                     to: binding.to,
+                    throttleMs: binding.throttleMs || 0,
                 });
             });
             this.eleMap.set(ele.id, ele);
         });
         this.bindingMap = bindingMap;
+        this._initBindingSubscriptions();
     }
 
     /**
@@ -111,24 +116,31 @@ export default class Resolver {
      * ];
      */
     _handleData(datas) {
-        let eleDatas = [];
         let tagUpdates = {};
         datas.forEach((item, index) => {
             const keys = Object.keys(item);
+            if ("id" in item && "data" in item) {
+                console.warn("已移除 id/data 更新路径，请改用数据点绑定。", item);
+                return;
+            }
+            if ("bussinessId" in item && "data" in item) {
+                console.warn(
+                    "已移除 bussinessId/data 更新路径，请改用数据点绑定。",
+                    item
+                );
+                return;
+            }
+            if (keys.find((key) => /^\$\{.+\}$/.test(key))) {
+                console.warn("已移除 ${} 占位符更新路径，请改用数据点绑定。", item);
+                return;
+            }
             keys.forEach((key) => {
                 tagUpdates[key] = item[key];
             });
         });
 
-        // 数据点更新 -> 绑定映射为图元数据更新
-        let bindingDatas = this._handleTagUpdates(tagUpdates);
-        eleDatas = this._mergeEleDatas(eleDatas, bindingDatas);
-
-        // 处理自定义事件和规则
-        this._handleCustomEvent(eleDatas);
-
-        // 统一发送给场景去处理
-        eventBus.postMessage(EventNames.EleDataChange, eleDatas);
+        // 数据点更新 -> 通过订阅触发绑定与规则
+        this.dataPointStore.bulkSet(tagUpdates);
     }
 
     /**
@@ -162,6 +174,13 @@ export default class Resolver {
             // 处理规则
             let rules = ele?.conf?.rules || [];
             rules.forEach((rule) => {
+                if (!rule) return;
+
+                if (rule.script) {
+                    this._runRuleScript(rule.script, ele, payload || {});
+                    return;
+                }
+
                 if (!rule?.when || !rule?.do) {
                     return;
                 }
@@ -172,19 +191,7 @@ export default class Resolver {
                     tag: (key) => this.dataPointStore.get(key),
                 });
                 if (!ok) return;
-                const resolvedParams = this._resolveRuleParams(
-                    rule.params || {},
-                    ele,
-                    payload || {}
-                );
-                const action = {
-                    actionType: ActionType.RunEleBehavior,
-                    actionOptions: {
-                        behaviorName: rule.do,
-                        behaviorParam: resolvedParams,
-                    },
-                };
-                this._handeAction(ActionType.RunEleBehavior, ele, null, action);
+                this._applyRuleAction(rule, ele, payload || {});
             });
         });
     }
@@ -212,66 +219,46 @@ export default class Resolver {
         return null;
     }
 
-    _handleTagUpdates(tagUpdates) {
-        if (!tagUpdates || Object.keys(tagUpdates).length === 0) return [];
-        this.dataPointStore.bulkSet(tagUpdates);
+    _applyTagUpdate(tag, value) {
+        let bindings = this.bindingMap.get(tag) || [];
+        if (bindings.length === 0) return;
 
-        let res = [];
-        Object.entries(tagUpdates).forEach(([tag, value]) => {
-            let bindings = this.bindingMap.get(tag) || [];
-            bindings.forEach(({ id, to }) => {
-                let dataPath = this._normalizeDataPath(to);
-                if (!dataPath) {
-                    console.warn(`bindings.to 仅支持 data 路径: ${to}`);
-                    return;
-                }
-                let data = {};
-                data[dataPath] = value;
-                res.push({
-                    id,
-                    data,
-                    payload: { [tag]: value },
-                });
+        let eleDatas = [];
+        bindings.forEach(({ id, to }) => {
+            let dataPath = this._normalizeDataPath(to);
+            if (!dataPath) {
+                console.warn(`bindings.to 仅支持 data 路径: ${to}`);
+                return;
+            }
+            let data = {};
+            data[dataPath] = value;
+            eleDatas.push({
+                id,
+                data,
+                payload: { [tag]: value },
             });
         });
-        return res;
-    }
 
-    _mergeEleDatas(listA = [], listB = []) {
-        let map = new Map();
-        const add = (item) => {
-            if (!item?.id) return;
-            if (!map.has(item.id)) {
-                map.set(item.id, {
-                    id: item.id,
-                    data: {},
-                    payload: {},
-                });
-            }
-            let target = map.get(item.id);
-            if (item.data) {
-                Object.assign(target.data, item.data);
-            }
-            if (item.payload) {
-                Object.assign(target.payload, item.payload);
-            }
-        };
-        listA.forEach(add);
-        listB.forEach(add);
-        return Array.from(map.values());
+        if (eleDatas.length === 0) return;
+        this._handleCustomEvent(eleDatas);
+        eventBus.postMessage(EventNames.EleDataChange, eleDatas);
     }
 
     _resolveRuleParams(params, ele, payload) {
         const resolveValue = (value) => {
             if (typeof value !== "string") return value;
-            if (value.startsWith("data.")) {
-                return this._getValueByDotPath(ele.data, value.slice(5));
+            let raw = value;
+            if (raw.startsWith("@") || raw.startsWith("$")) {
+                raw = raw.slice(1);
             }
-            if (value.startsWith("payload.")) {
-                return this._getValueByDotPath(payload, value.slice(8));
+            if (raw.startsWith("data.")) {
+                return this._getValueByDotPath(ele.data, raw.slice(5));
             }
-            if (value.startsWith("tag.")) {
-                return this.dataPointStore.get(value.slice(4));
+            if (raw.startsWith("payload.")) {
+                return this._getValueByDotPath(payload, raw.slice(8));
+            }
+            if (raw.startsWith("tag.")) {
+                return this.dataPointStore.get(raw.slice(4));
             }
             return value;
         };
@@ -296,5 +283,85 @@ export default class Resolver {
     _getValueByDotPath(obj, path) {
         if (!path) return undefined;
         return path.split(".").reduce((acc, key) => acc?.[key], obj);
+    }
+
+    _applyRuleAction(rule, ele, payload) {
+        const resolvedParams = this._resolveRuleParams(
+            rule.params || {},
+            ele,
+            payload || {}
+        );
+        const action = {
+            actionType: ActionType.RunEleBehavior,
+            actionOptions: {
+                behaviorName: rule.do,
+                behaviorParam: resolvedParams,
+            },
+        };
+        this._handeAction(ActionType.RunEleBehavior, ele, null, action);
+    }
+
+    _runRuleScript(script, ele, payload) {
+        if (typeof script !== "string" || !script.trim()) return;
+        try {
+            const fn = new Function(
+                "data",
+                "payload",
+                "ele",
+                "tag",
+                "dispatch",
+                script
+            );
+            const dispatch = (doName, params = {}) => {
+                this._applyRuleAction({ do: doName, params }, ele, payload);
+            };
+            const result = fn(
+                ele.data,
+                payload,
+                ele,
+                (key) => this.dataPointStore.get(key),
+                dispatch
+            );
+            if (!result) return;
+            if (Array.isArray(result)) {
+                result.forEach((item) => {
+                    if (item?.do) {
+                        this._applyRuleAction(item, ele, payload);
+                    }
+                });
+                return;
+            }
+            if (result?.do) {
+                this._applyRuleAction(result, ele, payload);
+            }
+        } catch (err) {
+            console.error("[Resolver] 规则脚本执行失败:", err);
+        }
+    }
+
+    _clearBindingSubscriptions() {
+        this.bindingUnsubs.forEach((unsub) => unsub());
+        this.bindingUnsubs = [];
+    }
+
+    _initBindingSubscriptions() {
+        this._clearBindingSubscriptions();
+        for (const [tag, bindings] of this.bindingMap.entries()) {
+            let throttleMs = 0;
+            bindings.forEach((binding) => {
+                if (binding.throttleMs && binding.throttleMs > 0) {
+                    throttleMs =
+                        throttleMs === 0
+                            ? binding.throttleMs
+                            : Math.min(throttleMs, binding.throttleMs);
+                }
+            });
+            const unsub = this.dataPointStore.subscribe(
+                tag,
+                (value) => this._applyTagUpdate(tag, value),
+                { throttleMs }
+            );
+            this.bindingUnsubs.push(unsub);
+        }
     }
 }

@@ -47,7 +47,7 @@ export const scene = {
                         actionOptions: {
                             name: "LiveCamera",
                             props: {
-                                bussinessId: "${bussinessId}",
+                                bussinessId: "",
                                 bussinessType: "",
                             },
                             theme: "default",
@@ -99,19 +99,26 @@ export const scene = {
             },
             data: {
                 value: "",
-                bussinessId: '123123123'
+                bussinessId: "123123123"
             },
             bindings: [
+                // 基础绑定
                 { tag: "dataPoint1", to: "data.value" },
+                // 节流绑定（500ms）
+                { tag: "dataPoint1", to: "data.value", throttleMs: 500 },
             ],
             conf: {
                 nameMode: NameModes.Hover,
                 rules: [
-                    {   
+                    {
                         when: "data.value != null",
                         do: "changeValue",
                         params: {
+                            // 直接路径
                             value: "data.value",
+                            // 前缀写法
+                            // value: "@data.value",
+                            // value: "$data.value",
                         },
                     },
                     {
@@ -126,6 +133,14 @@ export const scene = {
                         do: "changeColor",
                         params: {
                             color: "#3040ff",
+                        },
+                    },
+                    {
+                        // 使用 tag() 直接访问数据点
+                        when: "tag('dataPoint1') > 20",
+                        do: "changeColor",
+                        params: {
+                            color: "#00ff99",
                         },
                     },
                 ],

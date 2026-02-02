@@ -91,7 +91,7 @@ var app = new Vue({
         presure(count) {
             let obj = {
                 id: "8912749812734",
-                name: "数据点1-${data.value}",
+                name: "数据点1",
                 color: Colors.Normal,
                 graph: {
                     type: ElementType.Label,
@@ -102,10 +102,22 @@ var app = new Vue({
                     },
                 },
                 data: {
-                    value: "${dataPoint1}",
+                    value: "",
                 },
+                bindings: [
+                    { tag: "dataPoint1", to: "data.value" },
+                ],
                 conf: {
                     showName: true,
+                    rules: [
+                        {
+                            when: "data.value != null",
+                            do: "changeValue",
+                            params: {
+                                value: "data.value",
+                            },
+                        },
+                    ],
                     trigger: [
                         {
                             type: InteractionType.Click,
@@ -113,7 +125,7 @@ var app = new Vue({
                             actionOptions: {
                                 name: "LineChart",
                                 props: {
-                                    bussinessId: "${bussinessId}",
+                                    bussinessId: "",
                                     bussinessType: "",
                                 },
                                 theme: "default",

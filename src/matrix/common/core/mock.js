@@ -48,7 +48,7 @@ export const scenes = [
                             actionOptions: {
                                 name: "LiveCamera",
                                 props: {
-                                    bussinessId: "${data.bussinessId}",
+                                    bussinessId: "",
                                     bussinessType: "",
                                 },
                                 theme: "default",
@@ -116,13 +116,17 @@ export const scenes = [
                 data: {
                     test1: {
                         test2: {
-                            test3: "${testPoint3}",
-                            test4: [1, 2, 3, "${testPoint4}"],
+                            test3: "",
+                            test4: [1, 2, 3, ""],
                         },
                     },
                     bussinessId: "1208971927410",
                     bussinessType: "",
                 },
+                bindings: [
+                    { tag: "testPoint3", to: "data.test1.test2.test3" },
+                    { tag: "testPoint4", to: "data.test1.test2.test4.3" },
+                ],
                 conf: {
                     nameMode: NameModes.Hover,
                     trigger: [
@@ -131,7 +135,7 @@ export const scenes = [
                         //
                         //     // actionType: ActionType.OpenUrl,
                         //     // actionOptions: {
-                        //     //     url: "http://www.baidu.com?bussinessId=${data.bussinessId}",
+                        //     //     url: "http://www.baidu.com?bussinessId=xxx",
                         //     //     theme: "default",
                         //     // },
                         //     actionType: ActionType.ChangeAnchor,
@@ -167,13 +171,25 @@ export const scenes = [
                         y: 5,
                         z: 0,
                     },
-                    value: "${data.value}",
+                    value: "",
                 },
                 data: {
-                    value: "${dataPoint1}",
+                    value: "",
                 },
+                bindings: [
+                    { tag: "dataPoint1", to: "data.value" },
+                ],
                 conf: {
                     nameMode: NameModes.Permanent,
+                    rules: [
+                        {
+                            when: "data.value != null",
+                            do: "changeValue",
+                            params: {
+                                value: "data.value",
+                            },
+                        },
+                    ],
                     trigger: [
                         {
                             type: InteractionType.Click,
@@ -186,18 +202,6 @@ export const scenes = [
                                     bussinessType: "",
                                 },
                                 theme: "default",
-                            },
-                        },
-                        {
-                            type: InteractionType.Custom,
-
-                            actionType: ActionType.RunEleBehavior,
-                            actionOptions: {
-                                behaviorName: "changeValue",
-                                // behaviorParam: ['${data.value}'],
-                                behaviorParam: {
-                                    value: "${data.value}",
-                                },
                             },
                         },
                         // {
@@ -311,8 +315,11 @@ export const scenes = [
                     },
                 },
                 data: {
-                    value: "${testPoint3}",
+                    value: "",
                 },
+                bindings: [
+                    { tag: "testPoint3", to: "data.value" },
+                ],
                 conf: {
                     showName: true,
                     trigger: [
@@ -364,7 +371,7 @@ export const scenes = [
                             actionOptions: {
                                 name: "LiveCamera",
                                 props: {
-                                    bussinessId: "${bussinessId}",
+                                    bussinessId: "",
                                     bussinessType: "",
                                 },
                                 theme: "default",
@@ -448,8 +455,11 @@ export const scenes = [
                     icon: "uav",
                 },
                 data: {
-                    position: "${512116351141232-position}",
+                    position: "",
                 },
+                bindings: [
+                    { tag: "512116351141232-position", to: "data.position" },
+                ],
                 conf: {
                     nameMode: NameModes.Hover,
                     trigger: [
@@ -593,24 +603,23 @@ export const scenes = [
                 data: {
                     visible: true,
                     color: "#fff",
-                    value: "${dataPoint1}",
+                    value: "",
                 },
+                bindings: [
+                    { tag: "dataPoint1", to: "data.value" },
+                ],
                 conf: {
                     nameMode: NameModes.Hover,
-                    trigger: [
+                    rules: [
                         {
-                            type: InteractionType.Custom,
-
-                            actionType: ActionType.RunEleBehavior,
-                            actionOptions: {
-                                behaviorName: "changeValue",
-                                // behaviorParam: ['${data.value}'],
-                                behaviorParam: {
-                                    value: "${data.value}",
-                                },
+                            when: "data.value != null",
+                            do: "changeValue",
+                            params: {
+                                value: "data.value",
                             },
                         },
                     ],
+                    trigger: [],
                 },
             },
         ],
@@ -755,30 +764,29 @@ export const scenes = [
                     value: "初始文本",
                 },
                 data: {
-                    value: "${dataPoint1}",
+                    value: "",
                 },
+                bindings: [
+                    { tag: "dataPoint1", to: "data.value" },
+                ],
                 conf: {
                     nameMode: NameModes.Permanent,
-                    trigger: [
+                    rules: [
                         {
-                            type: InteractionType.Custom,
-
-                            actionType: ActionType.RunEleBehavior,
-                            actionOptions: {
-                                behaviorName: "changeValue",
-                                // behaviorParam: ['${data.value}'],
-                                behaviorParam: {
-                                    value: "${data.value}",
-                                },
+                            when: "data.value != null",
+                            do: "changeValue",
+                            params: {
+                                value: "data.value",
                             },
                         },
+                    ],
+                    trigger: [
                         {
                             type: InteractionType.Click,
 
                             actionType: ActionType.RunEleBehavior,
                             actionOptions: {
                                 behaviorName: "changeColor",
-                                // behaviorParam: ['${data.value}'],
                                 behaviorParam: {
                                     color: Colors.Error,
                                 },

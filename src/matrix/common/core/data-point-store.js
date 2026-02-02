@@ -5,6 +5,7 @@
 export default class DataPointStore {
     constructor() {
         this._map = new Map();
+        this._subs = new Map();
     }
 
     /**
@@ -12,17 +13,23 @@ export default class DataPointStore {
      * @param {string} key
      * @param {*} value
      */
-    set(key, value) {
+    set(key, value, options = {}) {
         this._map.set(key, value);
+        if (options.emit !== false) {
+            this._notify(key, value);
+        }
     }
 
     /**
      * 批量设置数据点
      * @param {Object} payload
      */
-    bulkSet(payload = {}) {
+    bulkSet(payload = {}, options = {}) {
         Object.entries(payload).forEach(([key, value]) => {
             this._map.set(key, value);
+            if (options.emit !== false) {
+                this._notify(key, value);
+            }
         });
     }
 
@@ -32,5 +39,53 @@ export default class DataPointStore {
      */
     get(key) {
         return this._map.get(key);
+    }
+
+    /**
+     * 订阅数据点变化
+     * @param {string} key
+     * @param {(value:any, key:string)=>void} callback
+     * @param {{throttleMs?:number}} options
+     */
+    subscribe(key, callback, options = {}) {
+        if (!key || typeof callback !== "function") return () => {};
+        const throttleMs = Number(options.throttleMs) || 0;
+        const sub = {
+            callback,
+            throttleMs,
+            timer: null,
+            pending: undefined,
+        };
+        if (!this._subs.has(key)) {
+            this._subs.set(key, new Set());
+        }
+        this._subs.get(key).add(sub);
+        return () => {
+            const set = this._subs.get(key);
+            if (!set) return;
+            set.delete(sub);
+            if (set.size === 0) {
+                this._subs.delete(key);
+            }
+        };
+    }
+
+    _notify(key, value) {
+        const set = this._subs.get(key);
+        if (!set || set.size === 0) return;
+        set.forEach((sub) => {
+            if (!sub.throttleMs) {
+                sub.callback(value, key);
+                return;
+            }
+            sub.pending = value;
+            if (sub.timer) return;
+            sub.timer = setTimeout(() => {
+                sub.timer = null;
+                const latest = sub.pending;
+                sub.pending = undefined;
+                sub.callback(latest, key);
+            }, sub.throttleMs);
+        });
     }
 }
