@@ -1,0 +1,77 @@
+<template>
+    <div class="ele-data">
+        <a-space style="margin-bottom: 10px">
+            <a-button @click="formatJson">格式化</a-button>
+            <a-button @click="saveData" type="primary">保存</a-button>
+        </a-space>
+        <div id="editor">{{jsonData}}</div>
+    </div>
+</template>
+
+<script>
+    //@ sourceURL=ele-data.js
+    export default {
+        props: ["data"],
+        inject: [],
+        data() {
+            return {};
+        },
+        components: {},
+        created() {},
+        watch: {
+            jsonData: {
+                handler(newVal, oldVal) {
+                    this.jsonData = newVal;
+                },
+                immediate: true,
+                deep: true,
+            },
+        },
+        mounted() {
+            this.initAce();
+        },
+        methods: {
+            saveData(){
+
+            },
+            initAce() {
+                this.editor = ace.edit("editor");
+                this.editor.session.setMode("ace/mode/json");
+                this.editor.setTheme("ace/theme/github");
+            },
+            formatJson() {
+                try {
+                    const value = this.editor.getValue();
+                    const formatted = JSON.stringify(JSON.parse(value), null, 2);
+                    this.editor.setValue(formatted, -1); // -1 表示光标保留原位
+                } catch (e) {
+                    alert("JSON 格式错误：" + e.message);
+                }
+            },
+            getJson() {
+                try {
+                    const json = JSON.parse(this.editor.getValue());
+                    document.getElementById("output").textContent = JSON.stringify(json, null, 2);
+                } catch (e) {
+                    document.getElementById("output").textContent = "解析错误：" + e.message;
+                }
+            },
+        },
+    };
+</script>
+
+<style lang="less">
+    .ele-data {
+        height: 100%;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+
+        #editor {
+            flex: 1;
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+    }
+</style>

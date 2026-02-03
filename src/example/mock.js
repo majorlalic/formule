@@ -208,7 +208,7 @@ export const scene = {
                 },
             ],
             conf: {
-                nameMode: NameModes.Permanent,
+                nameMode: NameModes.Hidden,
                 actions: [
                     {
                         when: "data.value != null",
@@ -253,7 +253,7 @@ export const scene = {
                 },
             ],
             conf: {
-                nameMode: NameModes.Permanent,
+                nameMode: NameModes.Hidden,
                 actions: [
                     {
                         when: "data.value != null",
@@ -268,45 +268,6 @@ export const scene = {
                 ],
                 trigger: [],
             },
-        },
-        {
-            id: "label-trend",
-            name: "趋势箭头",
-            color: Colors.Default,
-            visible: true,
-            layer: [],
-            zIndex: 4,
-            type: ElementType.Label,
-            graph: {
-                position: { x: 160, y: 240 },
-                value: "趋势",
-            },
-            data: {
-                value: "",
-            },
-            bindings: [
-                {
-                    tag: "flow",
-                    to: "data.value",
-                    calc: `
-                        const diff = value - (prev || 0);
-                        if (diff > 0) return "↑";
-                        if (diff < 0) return "↓";
-                        return "→";
-                    `,
-                },
-            ],
-            conf: {
-                nameMode: NameModes.Permanent,
-                actions: [
-                    {
-                        when: "data.value != null",
-                        do: "changeValue",
-                        params: { value: "@data.value" },
-                    },
-                ],
-                trigger: [],
-            },  
         },
         {
             id: "label-online",
@@ -328,7 +289,7 @@ export const scene = {
                 { tag: "device_online", to: "data.online" },
             ],
             conf: {
-                nameMode: NameModes.Permanent,
+                nameMode: NameModes.Hidden,
                 actions: [
                     {
                         when: "data.online === true",
@@ -363,7 +324,7 @@ export const scene = {
                 { tag: "alarm", to: "data.alarm" },
             ],
             conf: {
-                nameMode: NameModes.Permanent,
+                nameMode: NameModes.Hidden,
                 actions: [
                     {
                         when: "data.alarm === true",
@@ -401,7 +362,7 @@ export const scene = {
                 { tag: "device_state", to: "data.state" },
             ],
             conf: {
-                nameMode: NameModes.Permanent,
+                nameMode: NameModes.Hidden,
                 actions: [
                     {
                         when: "data.state === 1 && data.temp > 80",

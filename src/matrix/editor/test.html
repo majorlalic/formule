@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>JSON 编辑器 (带格式化功能)</title>
+        <style>
+            #editor {
+                height: 300px;
+                width: 100%;
+                border: 1px solid #ccc;
+            }
+            button {
+                margin-right: 10px;
+            }
+            pre {
+                background: #f9f9f9;
+                padding: 10px;
+            }
+        </style>
+        <script src="/dep/js/ace/ace.js"></script>
+    </head>
+    <body>
+        <h2>Ace JSON 编辑器</h2>
+        <div id="editor">{ "name": "李四", "age": 25 }</div>
+        <br />
+        <button onclick="formatJson()">格式化</button>
+        <button onclick="getJson()">获取 JSON</button>
+        <pre id="output"></pre>
+
+        <script>
+            const editor = ace.edit("editor");
+            editor.session.setMode("ace/mode/json");
+            editor.setTheme("ace/theme/github");
+
+            function formatJson() {
+                try {
+                    const value = editor.getValue();
+                    const formatted = JSON.stringify(JSON.parse(value), null, 2);
+                    editor.setValue(formatted, -1); // -1 表示光标保留原位
+                } catch (e) {
+                    alert("JSON 格式错误：" + e.message);
+                }
+            }
+
+            function getJson() {
+                try {
+                    const json = JSON.parse(editor.getValue());
+                    document.getElementById("output").textContent = JSON.stringify(json, null, 2);
+                } catch (e) {
+                    document.getElementById("output").textContent = "解析错误：" + e.message;
+                }
+            }
+        </script>
+    </body>
+</html>

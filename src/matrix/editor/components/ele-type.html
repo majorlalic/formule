@@ -1,0 +1,91 @@
+<template>
+    <div class="ele-type">
+        <div v-for="type of types" @click="selectType(type)" :class="{'checked': createType === type.key}">
+            <img :src="'./imgs/'+ type.key + '.svg'" />
+            <span>{{type.label}}</span>
+        </div>
+    </div>
+</template>
+
+<script>
+    //@ sourceURL=color-selector.js
+    import { Colors } from "/matrix/common/core/const.js";
+
+    export default {
+        props: ["sceneType","createType"],
+        inject: [],
+        data() {
+            return {
+                types: [
+                    {
+                        key: "Point",
+                        label: "点",
+                    },
+                    {
+                        key: "Polyline",
+                        label: "线",
+                    },
+                    {
+                        key: "Polygon",
+                        label: "面",
+                    },
+                    {
+                        key: "Modal",
+                        label: "模型",
+                    },
+                    {
+                        key: "Label",
+                        label: "文本",
+                    },
+                    {
+                        key: "Picture",
+                        label: "图片",
+                    },
+                ],
+            };
+        },
+        components: {},
+        created() {},
+        mounted() {},
+        methods: {
+            selectType(type) {
+                this.$emit("select", type.key);
+            },
+        },
+    };
+</script>
+
+<style lang="less">
+    .ele-type {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(auto-fill, 90px);
+        grid-gap: 10px;
+        padding: 10px;
+        overflow-y: auto;
+        min-height: 220px;
+        height: 100%;
+
+        & > div {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 6px;
+            cursor: pointer;
+
+            & > img {
+                width: 40px;
+                height: 40px;
+            }
+
+            & > span {
+                color: #3b3b3b;
+            }
+        }
+
+        & > div:hover, .checked {
+            background-color: #e4e4e4;
+        }
+    }
+</style>

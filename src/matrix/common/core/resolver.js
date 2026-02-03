@@ -142,21 +142,6 @@ export default class Resolver {
         let tagUpdates = {};
         datas.forEach((item, index) => {
             const keys = Object.keys(item);
-            if ("id" in item && "data" in item) {
-                console.warn("已移除 id/data 更新路径，请改用数据点绑定。", item);
-                return;
-            }
-            if ("bussinessId" in item && "data" in item) {
-                console.warn(
-                    "已移除 bussinessId/data 更新路径，请改用数据点绑定。",
-                    item
-                );
-                return;
-            }
-            if (keys.find((key) => /^\$\{.+\}$/.test(key))) {
-                console.warn("已移除 ${} 占位符更新路径，请改用数据点绑定。", item);
-                return;
-            }
             keys.forEach((key) => {
                 tagUpdates[key] = item[key];
             });

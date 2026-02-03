@@ -1,0 +1,139 @@
+<template>
+    <div class="scene-layer">
+        <a-space>
+            <a-button type="primary" icon="plus" @click="addLayer">新增图层</a-button>
+            <a-button type="primary" icon="save" @click="save">保存</a-button>
+        </a-space>
+        <div class="layer-item" v-for="layer of layers">
+            <div class="layer-title">
+                <div>
+                    <a-input v-model="layer.label"></a-input>
+                </div>
+
+                <a-icon style="right: 0" class="operate" type="delete" @click="deleteLayer(layer.name)"></a-icon>
+            </div>
+            <div class="layer-content">
+                <div>
+                    <div class="label">id:</div>
+                    <div class="form">
+                        <a-input v-model="layer.name"></a-input>
+                    </div>
+                </div>
+                <div>
+                    <div class="label">状态:</div>
+                    <div class="form">
+                        <a-switch checked-children="选中" un-checked-children="取消" v-model="layer.checked"></a-switch>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+    //@ sourceURL=scene-layer.js
+    export default {
+        props: ["layers"],
+        inject: [],
+        data() {
+            return {};
+        },
+        components: {},
+        created() {},
+        watch: {},
+        mounted() {},
+        methods: {
+            save() {},
+            addLayer() {
+                this.layers.push({
+                    key: "",
+                    name: "新增图层",
+                    checked: false,
+                });
+            },
+            deleteLayer(name) {
+                let index = this.layers.findIndex((i) => i.name == name);
+                if (index > -1) {
+                    this.layers.splice(index, 1);
+                }
+            },
+        },
+    };
+</script>
+
+<style lang="less">
+    .scene-layer {
+        display: flex;
+        flex-direction: column;
+        padding: 16px;
+        grid-gap: 10px;
+
+        .layer-item {
+            display: flex;
+            flex-direction: column;
+            padding: 5px 10px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 8px 1px rgba(0, 0, 0, 0.3);
+
+            .layer-title {
+                display: flex;
+                align-items: center;
+                border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+                padding: 4px 0;
+                position: relative;
+                font-size: 16px;
+
+                .operate {
+                    font-size: 20px;
+                    color: #4284f5;
+                    cursor: pointer;
+                    position: absolute;
+                }
+            }
+
+            .layer-content {
+                padding: 6px 4px;
+                grid-gap: 10px;
+                display: flex;
+                flex-direction: column;
+
+                & > div {
+                    display: flex;
+
+                    .label {
+                        position: relative;
+                        width: 80px;
+                        display: flex;
+                        align-items: center;
+                    }
+
+                    .form {
+                        flex: 1;
+
+                        .sub-attr {
+                            position: relative;
+                            margin-top: 4px;
+                            display: flex;
+                            flex-direction: column;
+                            grid-gap: 4px;
+
+                            & > div {
+                                display: flex;
+
+                                & > div:first-child {
+                                    padding-left: 10px;
+                                    width: 40px;
+                                    line-height: 34px;
+                                }
+
+                                & > div:nth-child(2) {
+                                    flex: 1;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+</style>

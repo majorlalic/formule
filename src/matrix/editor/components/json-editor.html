@@ -1,0 +1,62 @@
+<template>
+    <div class="json-editor">
+        <a-space style="margin-bottom: 10px">
+            <a-button size="small" @click="formatJson">格式化</a-button>
+            <a-button size="small" type="primary" @click="applyJson">应用</a-button>
+        </a-space>
+        <a-textarea v-model="text" :rows="10"></a-textarea>
+    </div>
+</template>
+
+<script>
+    //@ sourceURL=json-editor.js
+    export default {
+        props: ["value"],
+        data() {
+            return {
+                text: "",
+            };
+        },
+        watch: {
+            value: {
+                handler(newVal) {
+                    try {
+                        this.text = JSON.stringify(newVal ?? {}, null, 2);
+                    } catch (e) {
+                        this.text = "";
+                    }
+                },
+                immediate: true,
+                deep: true,
+            },
+        },
+        methods: {
+            formatJson() {
+                try {
+                    const formatted = JSON.stringify(
+                        JSON.parse(this.text || "{}"),
+                        null,
+                        2
+                    );
+                    this.text = formatted;
+                } catch (e) {
+                    this.$message.error("JSON 格式错误");
+                }
+            },
+            applyJson() {
+                try {
+                    const parsed = JSON.parse(this.text || "{}");
+                    this.$emit("input", parsed);
+                } catch (e) {
+                    this.$message.error("JSON 解析失败");
+                }
+            },
+        },
+    };
+</script>
+
+<style lang="less">
+    .json-editor {
+        padding: 10px 12px;
+    }
+</style>

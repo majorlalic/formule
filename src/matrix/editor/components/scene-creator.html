@@ -1,0 +1,70 @@
+<template>
+    <div class="scene-creator">
+        <a-modal
+            title="创建场景"
+            :visible="visible"
+            ok-text="确认"
+            cancel-text="取消"
+            @ok="createScene"
+            @cancel="visible = false"
+        >
+            <a-form :label-col="{ span: 4 }" :wrapper-col="{ span: 20 }">
+                <a-form-item label="场景类型">
+                    <a-select
+                        v-model="newScene.type"
+                        :options="sceneTypes"
+                    ></a-select>
+                </a-form-item>
+                <a-form-item label="名称">
+                    <a-input v-model="newScene.name"></a-input>
+                </a-form-item>
+            </a-form>
+        </a-modal>
+    </div>
+</template>
+
+<script>
+    //@ sourceURL=scene-creator.js
+    import { getNewScene, SceneDef } from "/matrix/common/core/def/sceneDef.js";
+    import { SceneType } from "../common/core/const.js";
+
+    export default {
+        props: [],
+        inject: [],
+        data() {
+            return {
+                visible: true,
+                sceneTypes: [],
+                newScene: {
+                    name: "",
+                    type: "",
+                },
+            };
+        },
+        created() {},
+        mounted() {
+            Object.keys(SceneType).forEach((key) => {
+                this.sceneTypes.push({
+                    key,
+                    name: key,
+                    label: key,
+                });
+            });
+        },
+        methods: {
+            /**
+             * 创建场景
+             */
+            createScene() {
+                this.visible = false;
+                let scene = getNewScene(this.newScene.type, this.newScene.name);
+                this.$emit("create", scene);
+            },
+        },
+    };
+</script>
+
+<style lang="less">
+    .scene-creator {
+    }
+</style>

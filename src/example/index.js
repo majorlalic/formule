@@ -11,7 +11,7 @@ import {
 } from "../matrix/common/core/const.js";
 // import { scene } from "./mock.js";
 import { scenes } from "/matrix/common/core/mock.js";
-import { scene } from "./mock.js";
+// import { scene } from "./mock.js";
 
 const eventBus = EventBusWorker.getInstance(ModuleNames.Scene);
 
@@ -34,7 +34,7 @@ var app = new Vue({
     created: function () {},
     mounted: function () {
         // TODO 模拟数据 接口实现
-        // let scene = scenes[1];
+        let scene = scenes[1];
 
         resolver = new Resolver("scene", scene);
         this.layers = scene?.layers || [];
