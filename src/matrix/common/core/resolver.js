@@ -30,7 +30,7 @@ export default class Resolver {
         // TODO 模拟数据 接口实现
 
         this.containerId = containerId;
-        this.eventBus = eventBus;
+        this._eventBus = eventBus;
         this.scene = scene;
         // 数据点存储中心
         this.dataPointStore = new DataPointStore();
@@ -45,7 +45,7 @@ export default class Resolver {
         // 订阅事件
         this._initEvent();
         // 初始化动作处理器
-        actionDispatcher = new ActionDispatcher(this, eventBus);
+        actionDispatcher = new ActionDispatcher(this, this._eventBus);
         // 动作驱动引擎
         this.actionEngine = new ActionEngine(actionDispatcher, this.dataPointStore);
     }
@@ -62,25 +62,25 @@ export default class Resolver {
         this.subscriptionManager.clear();
 
         initFrame(this.containerId, cloneScene).then(({ id, type, conf, elements }) => {
-            eventBus.postMessage(EventNames.InitScene, conf, elements);
+            this._eventBus.postMessage(EventNames.InitScene, conf, elements);
             this._handleEleMap(elements);
         });
     }
 
     _initEvent() {
         // TODO 针对短时间多次触发需添加节流逻辑
-        eventBus.on(EventNames.EleEvent, (type, ele, position) => {
+        this._eventBus.on(EventNames.EleEvent, (type, ele, position) => {
             // console.log(type, ele, position);
             this._handeAction(type, ele, position);
         });
 
         // 处理数据变化
-        eventBus.on(EventNames.DataChange, (datas) => {
+        this._eventBus.on(EventNames.DataChange, (datas) => {
             this._handleData(datas);
         });
 
         // 图层操作
-        eventBus.on(EventNames.LayerChange, (layers) => {
+        this._eventBus.on(EventNames.LayerChange, (layers) => {
             this._handleLayer(layers);
         });
     }
@@ -128,7 +128,23 @@ export default class Resolver {
      * @param {Array<String>} layers
      */
     _handleLayer(layers) {
-        eventBus.postMessage(EventNames.ChangeLayer, layers);
+        this._eventBus.postMessage(EventNames.ChangeLayer, layers);
+    }
+
+    /**
+     * 外部推送数据点
+     * @param {Array<Object>} datas
+     */
+    pushData(datas) {
+        this._eventBus.postMessage(EventNames.DataChange, datas);
+    }
+
+    /**
+     * 外部触发图层变更
+     * @param {Array<String>} layers
+     */
+    changeLayer(layers) {
+        this._eventBus.postMessage(EventNames.LayerChange, layers);
     }
 
     _handleCustomEvent(eleDatas) {
@@ -156,6 +172,6 @@ export default class Resolver {
         );
         if (eleDatas.length === 0) return;
         this._handleCustomEvent(eleDatas);
-        eventBus.postMessage(EventNames.EleDataChange, eleDatas);
+        this._eventBus.postMessage(EventNames.EleDataChange, eleDatas);
     }
 }

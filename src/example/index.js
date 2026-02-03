@@ -1,6 +1,5 @@
 import Resolver from "/matrix/common/core/resolver.js";
-import EventBusWorker from "/common/js/eventBus/eventBusWorker.js";
-import { ModuleNames, EventNames, Colors } from "/matrix/common/core/const.js";
+import { Colors } from "/matrix/common/core/const.js";
 import { loadVueComponent } from "/matrix/common/core/vue-component-loader.js";
 import {
     InteractionType,
@@ -10,18 +9,14 @@ import {
     SceneType,
 } from "../matrix/common/core/const.js";
 // import { scene } from "./mock.js";
-import { scenes } from "/matrix/common/core/mock.js";
-// import { scene } from "./mock.js";
-
-const eventBus = EventBusWorker.getInstance(ModuleNames.Scene);
+// import { scenes } from "/matrix/common/core/mock.js";
+import { scene } from "./mock.js";
 
 let resolver;
 var app = new Vue({
     el: "#app",
     provide() {
-        return {
-            eventBus,
-        };
+        return {};
     },
     data: {
         orgId: "",
@@ -34,7 +29,7 @@ var app = new Vue({
     created: function () {},
     mounted: function () {
         // TODO 模拟数据 接口实现
-        let scene = scenes[1];
+        // let scene = scenes[1];
 
         resolver = new Resolver("scene", scene);
         this.layers = scene?.layers || [];
@@ -49,18 +44,12 @@ var app = new Vue({
         }, 3000);
     },
     methods: {
-        test(x,y){
-            eventBus.postMessage(EventNames.CenterChange, {
-                x,
-                y
-            });
-        },
         layerChange(layer) {
             layer.checked = !layer.checked;
             let checked = this.layers
                 .filter((i) => i.checked)
                 .map((i) => i.name);
-            eventBus.postMessage(EventNames.LayerChange, checked);
+            resolver.changeLayer(checked);
         },
         mockData() {
             this.count += 1;
@@ -75,7 +64,7 @@ var app = new Vue({
                     flow: this.count % 15,
                 },
             ];
-            eventBus.postMessage(EventNames.DataChange, datas);
+            resolver.pushData(datas);
             setTimeout(() => {
                 this.mockData();
             }, 1000);
