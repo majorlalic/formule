@@ -95,6 +95,22 @@ export class ElementDef {
     }
 
     /**
+     * 闪烁
+     * @param {Number} interval 间隔(ms)
+     * @param {Number} times 次数(0=一直闪)
+     */
+    blink(interval = 300, times = 0) {
+        throw new Error("Method 'blink' must be implemented.");
+    }
+
+    /**
+     * 停止闪烁
+     */
+    stopBlink() {
+        throw new Error("Method 'stopBlink' must be implemented.");
+    }
+
+    /**
      * 根据key,value设置扩展属性
      * @param {Object} data
      */

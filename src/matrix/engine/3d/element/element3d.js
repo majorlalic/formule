@@ -75,6 +75,39 @@ export default class Element3d extends ElementDef {
     }
 
     /**
+     * 闪烁
+     * @param {Number} interval 间隔(ms)
+     * @param {Number} times 次数(0=一直闪)
+     */
+    blink(interval = 300, times = 0) {
+        this.stopBlink();
+        this._blinkOriginalVisible = this.visible !== false;
+        let count = 0;
+        this._blinkTimer = setInterval(() => {
+            const nextVisible = !this.group.visible;
+            this.changeVisible(nextVisible);
+            count += 1;
+            if (times > 0 && count >= times * 2) {
+                this.stopBlink();
+            }
+        }, interval);
+    }
+
+    /**
+     * 停止闪烁
+     */
+    stopBlink() {
+        if (this._blinkTimer) {
+            clearInterval(this._blinkTimer);
+            this._blinkTimer = null;
+        }
+        if (this._blinkOriginalVisible !== undefined) {
+            this.changeVisible(this._blinkOriginalVisible);
+            this._blinkOriginalVisible = undefined;
+        }
+    }
+
+    /**
      * 绑定事件
      * event交由对象定义
      */

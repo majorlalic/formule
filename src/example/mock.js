@@ -328,13 +328,13 @@ export const scene = {
                 actions: [
                     {
                         when: "data.alarm === true",
-                        do: "changePosition",
-                        params: { position: { x: 200, y: 320 } },
+                        do: "blink",
+                        params: { interval: 300, times: 0 },
                     },
                     {
                         when: "data.alarm === false",
-                        do: "changePosition",
-                        params: { position: { x: 160, y: 320 } },
+                        do: "stopBlink",
+                        params: {},
                     },
                 ],
                 trigger: [],
