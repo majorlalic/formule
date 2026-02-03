@@ -6,6 +6,7 @@ export default class DataPointStore {
     constructor() {
         this._map = new Map();
         this._subs = new Map();
+        this._prev = new Map();
     }
 
     /**
@@ -25,12 +26,16 @@ export default class DataPointStore {
      * @param {Object} payload
      */
     bulkSet(payload = {}, options = {}) {
+        const changed = new Map();
         Object.entries(payload).forEach(([key, value]) => {
+            this._prev.set(key, this._map.get(key));
             this._map.set(key, value);
-            if (options.emit !== false) {
-                this._notify(key, value);
-            }
+            changed.set(key, value);
         });
+
+        if (options.emit !== false) {
+            this._emitChanged(changed);
+        }
     }
 
     /**
@@ -39,6 +44,10 @@ export default class DataPointStore {
      */
     get(key) {
         return this._map.get(key);
+    }
+
+    getPrev(key) {
+        return this._prev.get(key);
     }
 
     /**
@@ -87,5 +96,11 @@ export default class DataPointStore {
                 sub.callback(latest, key);
             }, sub.throttleMs);
         });
+    }
+
+    _emitChanged(changed) {
+        for (const [key, value] of changed.entries()) {
+            this._notify(key, value);
+        }
     }
 }

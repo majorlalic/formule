@@ -181,12 +181,12 @@ export const scenes = [
                 ],
                 conf: {
                     nameMode: NameModes.Permanent,
-                    rules: [
+                    actions: [
                         {
                             when: "data.value != null",
                             do: "changeValue",
                             params: {
-                                value: "data.value",
+                                value: "@data.value",
                             },
                         },
                     ],
@@ -610,12 +610,12 @@ export const scenes = [
                 ],
                 conf: {
                     nameMode: NameModes.Hover,
-                    rules: [
+                    actions: [
                         {
                             when: "data.value != null",
                             do: "changeValue",
                             params: {
-                                value: "data.value",
+                                value: "@data.value",
                             },
                         },
                     ],
@@ -771,12 +771,12 @@ export const scenes = [
                 ],
                 conf: {
                     nameMode: NameModes.Permanent,
-                    rules: [
+                    actions: [
                         {
                             when: "data.value != null",
                             do: "changeValue",
                             params: {
-                                value: "data.value",
+                                value: "@data.value",
                             },
                         },
                     ],

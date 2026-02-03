@@ -63,29 +63,21 @@ var app = new Vue({
             eventBus.postMessage(EventNames.LayerChange, checked);
         },
         mockData() {
+            this.count += 1;
             let datas = [
                 {
-                    dataPoint1: ++this.count,
-                    testPoint3: moment().format("YYYY-MM-DD HH:mm:ss"),
-                    "129846712984321-state": this.count,
+                    dataPoint1: this.count % 30,
+                    speed_ms: (this.count % 20) + 5,
+                    temp_c: 60 + (this.count % 50),
+                    device_state: this.count % 4,
+                    device_online: this.count % 6 !== 0,
+                    alarm: this.count % 5 === 0,
+                    flow: this.count % 15,
                 },
             ];
             eventBus.postMessage(EventNames.DataChange, datas);
             setTimeout(() => {
                 this.mockData();
-            }, 1000);
-        },
-        mockDataPoint() {
-            let datas = [
-                {
-                    dataPoint1: ++this.count,
-                    testPoint3: moment().format("YYYY-MM-DD HH:mm:ss"),
-                    "129846712984321-state": this.count,
-                },
-            ];
-            eventBus.postMessage(EventNames.DataChange, datas);
-            setTimeout(() => {
-                this.mockDataPoint();
             }, 1000);
         },
         presure(count) {
@@ -109,12 +101,12 @@ var app = new Vue({
                 ],
                 conf: {
                     showName: true,
-                    rules: [
+                    actions: [
                         {
                             when: "data.value != null",
                             do: "changeValue",
                             params: {
-                                value: "data.value",
+                                value: "@data.value",
                             },
                         },
                     ],

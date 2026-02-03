@@ -102,50 +102,319 @@ export const scene = {
                 bussinessId: "123123123"
             },
             bindings: [
-                // 基础绑定
-                { tag: "dataPoint1", to: "data.value" },
-                // 节流绑定（500ms）
-                { tag: "dataPoint1", to: "data.value", throttleMs: 500 },
+                {
+                    tag: "dataPoint1",
+                    to: "data.value",
+                    calc: "return value + ' ℃';",
+                },
+                {
+                    tag: "dataPoint1",
+                    to: "data.color",
+                    range: [
+                        { gt: 15, value: "#3040ff" },
+                        { gt: 10, value: "#ff3040" },
+                        { lte: 10, value: "#2F7CEE" },
+                    ],
+                    throttleMs: 500,
+                },
             ],
             conf: {
                 nameMode: NameModes.Hover,
-                rules: [
+                actions: [
                     {
                         when: "data.value != null",
                         do: "changeValue",
                         params: {
-                            // 直接路径
-                            value: "data.value",
-                            // 前缀写法
-                            // value: "@data.value",
-                            // value: "$data.value",
+                            value: "@data.value",
                         },
                     },
                     {
-                        when: "data.value > 10",
+                        when: "data.color != null",
                         do: "changeColor",
                         params: {
-                            color: "#ff3040",
-                        },
-                    },
-                    {
-                        when: "data.value > 15",
-                        do: "changeColor",
-                        params: {
-                            color: "#3040ff",
-                        },
-                    },
-                    {
-                        // 使用 tag() 直接访问数据点
-                        when: "tag('dataPoint1') > 20",
-                        do: "changeColor",
-                        params: {
-                            color: "#00ff99",
+                            color: "@data.color",
                         },
                     },
                 ],
                 trigger: [],
                 
+            },
+        },
+        {
+            id: "label-state",
+            name: "状态枚举",
+            color: Colors.Default,
+            visible: true,
+            layer: [],
+            zIndex: 4,
+            type: ElementType.Label,
+            graph: {
+                position: { x: 160, y: 120 },
+                value: "状态",
+            },
+            data: {
+                value: "",
+                color: Colors.Default,
+            },
+            bindings: [
+                {
+                    tag: "device_state",
+                    to: "data.value",
+                    map: { 0: "正常", 1: "告警", 2: "离线", 3: "维护" },
+                },
+                {
+                    tag: "device_state",
+                    to: "data.color",
+                    map: { 0: "#2F7CEE", 1: "#FF3040", 2: "#7B7A82", 3: "#FABE11" },
+                },
+            ],
+            conf: {
+                nameMode: NameModes.Permanent,
+                actions: [
+                    {
+                        when: "data.value != null",
+                        do: "changeValue",
+                        params: { value: "@data.value" },
+                    },
+                    {
+                        when: "data.color != null",
+                        do: "changeColor",
+                        params: { color: "@data.color" },
+                    },
+                ],
+                trigger: [],
+            },
+        },
+        {
+            id: "label-speed",
+            name: "实时数值单位转换，添加单位",
+            color: Colors.Default,
+            visible: true,
+            layer: [],
+            zIndex: 4,
+            type: ElementType.Label,
+            graph: {
+                position: { x: 160, y: 160 },
+                value: "速度",
+            },
+            data: {
+                value: "",
+            },
+            bindings: [
+                {
+                    tag: "speed_ms",
+                    to: "data.value",
+                    calc: "return (value * 3.6).toFixed(1) + ' km/h';",
+                },
+            ],
+            conf: {
+                nameMode: NameModes.Permanent,
+                actions: [
+                    {
+                        when: "data.value != null",
+                        do: "changeValue",
+                        params: { value: "@data.value" },
+                    },
+                ],
+                trigger: [],
+            },
+        },
+        {
+            id: "label-temp",
+            name: "数值区间+文案",
+            color: Colors.Default,
+            visible: true,
+            layer: [],
+            zIndex: 4,
+            type: ElementType.Label,
+            graph: {
+                position: { x: 160, y: 200 },
+                value: "温度",
+            },
+            data: {
+                value: "",
+                color: Colors.Default,
+            },
+            bindings: [
+                {
+                    tag: "temp_c",
+                    to: "data.value",
+                    calc: "return value.toFixed(1) + ' ℃';",
+                    default: "--",
+                },
+                {
+                    tag: "temp_c",
+                    to: "data.color",
+                    range: [
+                        { gt: 100, value: "#FF0000" },
+                        { gt: 80, value: "#FF9900" },
+                        { lte: 80, value: "#00CC66" },
+                    ],
+                },
+            ],
+            conf: {
+                nameMode: NameModes.Permanent,
+                actions: [
+                    {
+                        when: "data.value != null",
+                        do: "changeValue",
+                        params: { value: "@data.value" },
+                    },
+                    {
+                        when: "data.color != null",
+                        do: "changeColor",
+                        params: { color: "@data.color" },
+                    },
+                ],
+                trigger: [],
+            },
+        },
+        {
+            id: "label-trend",
+            name: "趋势箭头",
+            color: Colors.Default,
+            visible: true,
+            layer: [],
+            zIndex: 4,
+            type: ElementType.Label,
+            graph: {
+                position: { x: 160, y: 240 },
+                value: "趋势",
+            },
+            data: {
+                value: "",
+            },
+            bindings: [
+                {
+                    tag: "flow",
+                    to: "data.value",
+                    calc: `
+                        const diff = value - (prev || 0);
+                        if (diff > 0) return "↑";
+                        if (diff < 0) return "↓";
+                        return "→";
+                    `,
+                },
+            ],
+            conf: {
+                nameMode: NameModes.Permanent,
+                actions: [
+                    {
+                        when: "data.value != null",
+                        do: "changeValue",
+                        params: { value: "@data.value" },
+                    },
+                ],
+                trigger: [],
+            },  
+        },
+        {
+            id: "label-online",
+            name: "显示/隐藏",
+            color: Colors.Default,
+            visible: true,
+            layer: [],
+            zIndex: 4,
+            type: ElementType.Label,
+            graph: {
+                position: { x: 160, y: 280 },
+                value: "在线",
+            },
+            data: {
+                online: true,
+                value: "在线",
+            },
+            bindings: [
+                { tag: "device_online", to: "data.online" },
+            ],
+            conf: {
+                nameMode: NameModes.Permanent,
+                actions: [
+                    {
+                        when: "data.online === true",
+                        do: "changeVisible",
+                        params: { visible: true },
+                    },
+                    {
+                        when: "data.online === false",
+                        do: "changeVisible",
+                        params: { visible: false },
+                    },
+                ],
+                trigger: [],
+            },
+        },
+        {
+            id: "label-alarm",
+            name: "动画触发",
+            color: Colors.Default,
+            visible: true,
+            layer: [],
+            zIndex: 4,
+            type: ElementType.Label,
+            graph: {
+                position: { x: 160, y: 320 },
+                value: "告警动画",
+            },
+            data: {
+                value: "告警动画",
+            },
+            bindings: [
+                { tag: "alarm", to: "data.alarm" },
+            ],
+            conf: {
+                nameMode: NameModes.Permanent,
+                actions: [
+                    {
+                        when: "data.alarm === true",
+                        do: "changePosition",
+                        params: { position: { x: 200, y: 320 } },
+                    },
+                    {
+                        when: "data.alarm === false",
+                        do: "changePosition",
+                        params: { position: { x: 160, y: 320 } },
+                    },
+                ],
+                trigger: [],
+            },
+        },
+        {
+            id: "label-combo",
+            name: "多字段组合",
+            color: Colors.Default,
+            visible: true,
+            layer: [],
+            zIndex: 4,
+            type: ElementType.Label,
+            graph: {
+                position: { x: 160, y: 360 },
+                value: "组合告警",
+            },
+            data: {
+                temp: 0,
+                state: 0,
+                color: Colors.Default,
+            },
+            bindings: [
+                { tag: "temp_c", to: "data.temp" },
+                { tag: "device_state", to: "data.state" },
+            ],
+            conf: {
+                nameMode: NameModes.Permanent,
+                actions: [
+                    {
+                        when: "data.state === 1 && data.temp > 80",
+                        do: "changeColor",
+                        params: { color: "#FF3040" },
+                    },
+                    {
+                        when: "data.state !== 1 || data.temp <= 80",
+                        do: "changeColor",
+                        params: { color: "#2F7CEE" },
+                    },
+                ],
+                trigger: [],
             },
         },
     ],

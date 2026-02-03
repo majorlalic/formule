@@ -93,9 +93,32 @@ export default class Resolver {
                 if (!bindingMap.has(binding.tag)) {
                     bindingMap.set(binding.tag, []);
                 }
+                const hasCalc = !!binding.calc;
+                const hasMap = !!binding.map;
+                const hasRange = Array.isArray(binding.range);
+                const count = [hasCalc, hasMap, hasRange].filter(Boolean).length;
+                if (count > 1) {
+                    console.warn(
+                        "binding 只允许使用 calc/map/range 其中一个，已按优先级 calc > map > range 处理：",
+                        binding
+                    );
+                }
+                let calcFn = null;
+                if (hasCalc) {
+                    try {
+                        calcFn = new Function("value", "prev", "tag", binding.calc);
+                    } catch (err) {
+                        console.error("[Resolver] binding.calc 编译失败:", binding.calc, err);
+                    }
+                }
                 bindingMap.get(binding.tag).push({
                     id: ele.id,
                     to: binding.to,
+                    calc: binding.calc || "",
+                    calcFn,
+                    map: binding.map || null,
+                    range: binding.range || null,
+                    defaultValue: binding.default,
                     throttleMs: binding.throttleMs || 0,
                 });
             });
@@ -166,32 +189,23 @@ export default class Resolver {
             setData(ele.data, data);
 
             // 处理自定义事件
-            let actions = ele?.conf?.trigger.filter((i) => i?.type == InteractionType.Custom) || [];
-            actions.forEach((action) => {
+            let customActions = ele?.conf?.trigger.filter((i) => i?.type == InteractionType.Custom) || [];
+            customActions.forEach((action) => {
                 this._handeAction(action.actionType, ele, null, action);
             });
 
-            // 处理规则
-            let rules = ele?.conf?.rules || [];
-            rules.forEach((rule) => {
-                if (!rule) return;
-
-                if (rule.script) {
-                    this._runRuleScript(rule.script, ele, payload || {});
-                    return;
-                }
-
-                if (!rule?.when || !rule?.do) {
-                    return;
-                }
-                const ok = evalRule(rule.when, {
+            // 处理动作
+            const actions = ele?.conf?.actions || [];
+            actions.forEach((action) => {
+                if (!action?.when || !action?.do) return;
+                const ok = evalRule(action.when, {
                     data: ele.data,
                     payload: payload || {},
                     ele,
                     tag: (key) => this.dataPointStore.get(key),
                 });
                 if (!ok) return;
-                this._applyRuleAction(rule, ele, payload || {});
+                this._applyRuleAction(action, ele, payload || {});
             });
         });
     }
@@ -224,20 +238,31 @@ export default class Resolver {
         if (bindings.length === 0) return;
 
         let eleDatas = [];
-        bindings.forEach(({ id, to }) => {
-            let dataPath = this._normalizeDataPath(to);
-            if (!dataPath) {
-                console.warn(`bindings.to 仅支持 data 路径: ${to}`);
-                return;
-            }
-            let data = {};
-            data[dataPath] = value;
-            eleDatas.push({
-                id,
-                data,
-                payload: { [tag]: value },
+            bindings.forEach(({ id, to, calc, calcFn, map, range, defaultValue }) => {
+                let dataPath = this._normalizeDataPath(to);
+                if (!dataPath) {
+                    console.warn(`bindings.to 仅支持 data 路径: ${to}`);
+                    return;
+                }
+                const computed = this._applyBindingValue(
+                    value,
+                    tag,
+                    calc,
+                    calcFn,
+                    map,
+                    range
+                );
+                const finalValue =
+                    computed === undefined ? defaultValue : computed;
+                if (finalValue === undefined) return;
+                let data = {};
+                data[dataPath] = finalValue;
+                eleDatas.push({
+                    id,
+                    data,
+                    payload: { [tag]: value },
+                });
             });
-        });
 
         if (eleDatas.length === 0) return;
         this._handleCustomEvent(eleDatas);
@@ -285,6 +310,41 @@ export default class Resolver {
         return path.split(".").reduce((acc, key) => acc?.[key], obj);
     }
 
+    _applyBindingValue(value, tag, calc, calcFn, map, range) {
+        if (calc) {
+            try {
+                const fn = calcFn || new Function("value", "prev", "tag", calc);
+                return fn(
+                    value,
+                    this.dataPointStore.getPrev(tag),
+                    (key) => this.dataPointStore.get(key)
+                );
+            } catch (err) {
+                console.error("[Resolver] binding.calc 执行失败:", calc, err);
+                return undefined;
+            }
+        }
+
+        if (map && typeof map === "object") {
+            return map[value];
+        }
+
+        if (Array.isArray(range)) {
+            for (const r of range) {
+                if (r == null) continue;
+                if (r.hasOwnProperty("gt") && !(value > r.gt)) continue;
+                if (r.hasOwnProperty("gte") && !(value >= r.gte)) continue;
+                if (r.hasOwnProperty("lt") && !(value < r.lt)) continue;
+                if (r.hasOwnProperty("lte") && !(value <= r.lte)) continue;
+                if (r.hasOwnProperty("eq") && !(value === r.eq)) continue;
+                return r.value;
+            }
+            return undefined;
+        }
+
+        return value;
+    }
+
     _applyRuleAction(rule, ele, payload) {
         const resolvedParams = this._resolveRuleParams(
             rule.params || {},
@@ -301,43 +361,6 @@ export default class Resolver {
         this._handeAction(ActionType.RunEleBehavior, ele, null, action);
     }
 
-    _runRuleScript(script, ele, payload) {
-        if (typeof script !== "string" || !script.trim()) return;
-        try {
-            const fn = new Function(
-                "data",
-                "payload",
-                "ele",
-                "tag",
-                "dispatch",
-                script
-            );
-            const dispatch = (doName, params = {}) => {
-                this._applyRuleAction({ do: doName, params }, ele, payload);
-            };
-            const result = fn(
-                ele.data,
-                payload,
-                ele,
-                (key) => this.dataPointStore.get(key),
-                dispatch
-            );
-            if (!result) return;
-            if (Array.isArray(result)) {
-                result.forEach((item) => {
-                    if (item?.do) {
-                        this._applyRuleAction(item, ele, payload);
-                    }
-                });
-                return;
-            }
-            if (result?.do) {
-                this._applyRuleAction(result, ele, payload);
-            }
-        } catch (err) {
-            console.error("[Resolver] 规则脚本执行失败:", err);
-        }
-    }
 
     _clearBindingSubscriptions() {
         this.bindingUnsubs.forEach((unsub) => unsub());
