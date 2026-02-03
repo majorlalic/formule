@@ -1,11 +1,11 @@
-import { ModuleNames, EventNames, InteractionType, ActionType } from "./const.js";
+import { ModuleNames, EventNames } from "./const.js";
 import EventBusWorker from "/common/js/eventBus/eventBusWorker.js";
-import { SceneDef } from "./def/sceneDef.js";
-import { ElementDef } from "./def/elementDef.js";
-import { Action, ElementData } from "./def/typeDef.js";
-import { setData, initFrame, deepClone, evalRule } from "./utils.js";
+import { initFrame, deepClone } from "./utils.js";
 import { ActionDispatcher } from "./action-dispatcher.js";
 import DataPointStore from "./data-point-store.js";
+import BindingEngine from "./binding-engine.js";
+import ActionEngine from "./action-engine.js";
+import SubscriptionManager from "./subscription-manager.js";
 
 const eventBus = EventBusWorker.getInstance(ModuleNames.Resolver);
 let actionDispatcher;
@@ -19,8 +19,6 @@ export default class Resolver {
     eleMap = new Map();
     // 数据点绑定映射
     bindingMap = new Map();
-    // 数据点订阅取消函数
-    bindingUnsubs = [];
 
     /**
      * 初始化场景
@@ -34,7 +32,12 @@ export default class Resolver {
         this.containerId = containerId;
         this.eventBus = eventBus;
         this.scene = scene;
+        // 数据点存储中心
         this.dataPointStore = new DataPointStore();
+        // 数据点与图元绑定，数据驱动引擎
+        this.bindingEngine = new BindingEngine(this.dataPointStore);
+        // 订阅管理器
+        this.subscriptionManager = new SubscriptionManager(this.dataPointStore);
 
         // 初始化场景
         this.initScene(scene);
@@ -43,6 +46,8 @@ export default class Resolver {
         this._initEvent();
         // 初始化动作处理器
         actionDispatcher = new ActionDispatcher(this, eventBus);
+        // 动作驱动引擎
+        this.actionEngine = new ActionEngine(actionDispatcher, this.dataPointStore);
     }
 
     /**
@@ -54,7 +59,7 @@ export default class Resolver {
         // 重置图元映射
         this.eleMap = new Map();
         this.bindingMap = new Map();
-        this._clearBindingSubscriptions();
+        this.subscriptionManager.clear();
 
         initFrame(this.containerId, cloneScene).then(({ id, type, conf, elements }) => {
             eventBus.postMessage(EventNames.InitScene, conf, elements);
@@ -85,47 +90,13 @@ export default class Resolver {
      * @param {Array<ElementDef>} eles
      */
     _handleEleMap(eles) {
-        let bindingMap = new Map();
-        eles.forEach((ele) => {
-            // 绑定数据点
-            (ele?.bindings || []).forEach((binding) => {
-                if (!binding?.tag || !binding?.to) return;
-                if (!bindingMap.has(binding.tag)) {
-                    bindingMap.set(binding.tag, []);
-                }
-                const hasCalc = !!binding.calc;
-                const hasMap = !!binding.map;
-                const hasRange = Array.isArray(binding.range);
-                const count = [hasCalc, hasMap, hasRange].filter(Boolean).length;
-                if (count > 1) {
-                    console.warn(
-                        "binding 只允许使用 calc/map/range 其中一个，已按优先级 calc > map > range 处理：",
-                        binding
-                    );
-                }
-                let calcFn = null;
-                if (hasCalc) {
-                    try {
-                        calcFn = new Function("value", "prev", "tag", binding.calc);
-                    } catch (err) {
-                        console.error("[Resolver] binding.calc 编译失败:", binding.calc, err);
-                    }
-                }
-                bindingMap.get(binding.tag).push({
-                    id: ele.id,
-                    to: binding.to,
-                    calc: binding.calc || "",
-                    calcFn,
-                    map: binding.map || null,
-                    range: binding.range || null,
-                    defaultValue: binding.default,
-                    throttleMs: binding.throttleMs || 0,
-                });
-            });
-            this.eleMap.set(ele.id, ele);
-        });
-        this.bindingMap = bindingMap;
-        this._initBindingSubscriptions();
+        // 绑定索引、订阅注册
+        this.eleMap = new Map();
+        eles.forEach((ele) => this.eleMap.set(ele.id, ele));
+        this.bindingMap = this.bindingEngine.build(eles);
+        this.subscriptionManager.setBindings(this.bindingMap, (tag, value) =>
+            this._onTagUpdate(tag, value)
+        );
     }
 
     /**
@@ -147,7 +118,7 @@ export default class Resolver {
             });
         });
 
-        // 数据点更新 -> 通过订阅触发绑定与规则
+        // 数据点更新 -> 通过订阅触发绑定与动作
         this.dataPointStore.bulkSet(tagUpdates);
     }
 
@@ -160,39 +131,8 @@ export default class Resolver {
         eventBus.postMessage(EventNames.ChangeLayer, layers);
     }
 
-    /**
-     * 处理自定义事件与规则
-     * @param {Array<ElementData>} datas
-     */
     _handleCustomEvent(eleDatas) {
-        eleDatas.forEach(({ id, data, payload }) => {
-            let ele = this.eleMap.get(id);
-            // 更新ele属性
-            if (!ele) {
-                return;
-            }
-            setData(ele.data, data);
-
-            // 处理自定义事件
-            let customActions = ele?.conf?.trigger.filter((i) => i?.type == InteractionType.Custom) || [];
-            customActions.forEach((action) => {
-                this._handeAction(action.actionType, ele, null, action);
-            });
-
-            // 处理动作
-            const actions = ele?.conf?.actions || [];
-            actions.forEach((action) => {
-                if (!action?.when || !action?.do) return;
-                const ok = evalRule(action.when, {
-                    data: ele.data,
-                    payload: payload || {},
-                    ele,
-                    tag: (key) => this.dataPointStore.get(key),
-                });
-                if (!ok) return;
-                this._applyRuleAction(action, ele, payload || {});
-            });
-        });
+        this.actionEngine.apply(this.eleMap, eleDatas);
     }
 
     /**
@@ -207,169 +147,15 @@ export default class Resolver {
         actionDispatcher.dispatch(ele, action, position);
     }
 
-    _normalizeDataPath(path) {
-        if (!path || typeof path !== "string") return null;
-        if (path.startsWith("data.")) {
-            return path.slice(5).replace(/\./g, "|");
-        }
-        if (path.startsWith("data|")) {
-            return path.slice(5);
-        }
-        return null;
-    }
-
-    _applyTagUpdate(tag, value) {
-        let bindings = this.bindingMap.get(tag) || [];
-        if (bindings.length === 0) return;
-
-        let eleDatas = [];
-            bindings.forEach(({ id, to, calc, calcFn, map, range, defaultValue }) => {
-                let dataPath = this._normalizeDataPath(to);
-                if (!dataPath) {
-                    console.warn(`bindings.to 仅支持 data 路径: ${to}`);
-                    return;
-                }
-                const computed = this._applyBindingValue(
-                    value,
-                    tag,
-                    calc,
-                    calcFn,
-                    map,
-                    range
-                );
-                const finalValue =
-                    computed === undefined ? defaultValue : computed;
-                if (finalValue === undefined) return;
-                let data = {};
-                data[dataPath] = finalValue;
-                eleDatas.push({
-                    id,
-                    data,
-                    payload: { [tag]: value },
-                });
-            });
-
+    _onTagUpdate(tag, value) {
+        // 单个数据点触发 bindings + actions
+        const eleDatas = this.bindingEngine.applyTagUpdate(
+            tag,
+            value,
+            this.bindingMap
+        );
         if (eleDatas.length === 0) return;
         this._handleCustomEvent(eleDatas);
         eventBus.postMessage(EventNames.EleDataChange, eleDatas);
-    }
-
-    _resolveRuleParams(params, ele, payload) {
-        const resolveValue = (value) => {
-            if (typeof value !== "string") return value;
-            let raw = value;
-            if (raw.startsWith("@") || raw.startsWith("$")) {
-                raw = raw.slice(1);
-            }
-            if (raw.startsWith("data.")) {
-                return this._getValueByDotPath(ele.data, raw.slice(5));
-            }
-            if (raw.startsWith("payload.")) {
-                return this._getValueByDotPath(payload, raw.slice(8));
-            }
-            if (raw.startsWith("tag.")) {
-                return this.dataPointStore.get(raw.slice(4));
-            }
-            return value;
-        };
-
-        const walk = (input) => {
-            if (Array.isArray(input)) {
-                return input.map((item) => walk(item));
-            }
-            if (input && typeof input === "object") {
-                const out = {};
-                Object.keys(input).forEach((key) => {
-                    out[key] = walk(input[key]);
-                });
-                return out;
-            }
-            return resolveValue(input);
-        };
-
-        return walk(params);
-    }
-
-    _getValueByDotPath(obj, path) {
-        if (!path) return undefined;
-        return path.split(".").reduce((acc, key) => acc?.[key], obj);
-    }
-
-    _applyBindingValue(value, tag, calc, calcFn, map, range) {
-        if (calc) {
-            try {
-                const fn = calcFn || new Function("value", "prev", "tag", calc);
-                return fn(
-                    value,
-                    this.dataPointStore.getPrev(tag),
-                    (key) => this.dataPointStore.get(key)
-                );
-            } catch (err) {
-                console.error("[Resolver] binding.calc 执行失败:", calc, err);
-                return undefined;
-            }
-        }
-
-        if (map && typeof map === "object") {
-            return map[value];
-        }
-
-        if (Array.isArray(range)) {
-            for (const r of range) {
-                if (r == null) continue;
-                if (r.hasOwnProperty("gt") && !(value > r.gt)) continue;
-                if (r.hasOwnProperty("gte") && !(value >= r.gte)) continue;
-                if (r.hasOwnProperty("lt") && !(value < r.lt)) continue;
-                if (r.hasOwnProperty("lte") && !(value <= r.lte)) continue;
-                if (r.hasOwnProperty("eq") && !(value === r.eq)) continue;
-                return r.value;
-            }
-            return undefined;
-        }
-
-        return value;
-    }
-
-    _applyRuleAction(rule, ele, payload) {
-        const resolvedParams = this._resolveRuleParams(
-            rule.params || {},
-            ele,
-            payload || {}
-        );
-        const action = {
-            actionType: ActionType.RunEleBehavior,
-            actionOptions: {
-                behaviorName: rule.do,
-                behaviorParam: resolvedParams,
-            },
-        };
-        this._handeAction(ActionType.RunEleBehavior, ele, null, action);
-    }
-
-
-    _clearBindingSubscriptions() {
-        this.bindingUnsubs.forEach((unsub) => unsub());
-        this.bindingUnsubs = [];
-    }
-
-    _initBindingSubscriptions() {
-        this._clearBindingSubscriptions();
-        for (const [tag, bindings] of this.bindingMap.entries()) {
-            let throttleMs = 0;
-            bindings.forEach((binding) => {
-                if (binding.throttleMs && binding.throttleMs > 0) {
-                    throttleMs =
-                        throttleMs === 0
-                            ? binding.throttleMs
-                            : Math.min(throttleMs, binding.throttleMs);
-                }
-            });
-            const unsub = this.dataPointStore.subscribe(
-                tag,
-                (value) => this._applyTagUpdate(tag, value),
-                { throttleMs }
-            );
-            this.bindingUnsubs.push(unsub);
-        }
     }
 }
