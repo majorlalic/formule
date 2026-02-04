@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+
+        <link rel="stylesheet" href="/dep/plugins/ant-design/antd.min.css" />
+        <link href="/dep/css/animate.min.css" rel="stylesheet" />
+        <link rel="stylesheet/less" href="./index.less" />
+        <script src="/dep/js/less.min.js"></script>
+        <title>隧道模板生成</title>
+    </head>
+    <body>
+        <div id="app">
+            <div class="panel">
+                <div class="title">隧道模板配置</div>
+                <a-form layout="vertical" class="form">
+                    <div class="grid">
+                        <a-form-item label="起始里程(m)">
+                            <a-input-number v-model="form.startMil" style="width: 100%"></a-input-number>
+                        </a-form-item>
+                        <a-form-item label="结束里程(m)">
+                            <a-input-number v-model="form.endMil" style="width: 100%"></a-input-number>
+                        </a-form-item>
+                        <a-form-item label="左侧偏移(px)">
+                            <a-input-number v-model="form.offsetLeft" style="width: 100%"></a-input-number>
+                        </a-form-item>
+                        <a-form-item label="右侧偏移(px)">
+                            <a-input-number v-model="form.offsetRight" style="width: 100%"></a-input-number>
+                        </a-form-item>
+                        <a-form-item label="上侧偏移(px)">
+                            <a-input-number v-model="form.offsetTop" style="width: 100%"></a-input-number>
+                        </a-form-item>
+                        <a-form-item label="下侧偏移(px)">
+                            <a-input-number v-model="form.offsetBottom" style="width: 100%"></a-input-number>
+                        </a-form-item>
+                        <a-form-item label="背景图片">
+                            <a-input v-model="form.backgroundUrl"></a-input>
+                        </a-form-item>
+                        <a-form-item label="显示起止里程">
+                            <a-switch v-model="form.showStartEndLabel" />
+                        </a-form-item>
+                    </div>
+                </a-form>
+
+                    <div class="section compact">
+                        <div class="section-title">设备数据(模拟接口返回)</div>
+                        <a-space style="margin-bottom: 8px">
+                            <a-input-number v-model="form.mockCount" :min="1" style="width: 120px"></a-input-number>
+                            <a-button @click="mockDevices">模拟接口</a-button>
+                            <a-button @click="formatDevices">格式化</a-button>
+                        </a-space>
+                        <a-textarea v-model="devicesText" :rows="10"></a-textarea>
+                    </div>
+
+                    <div class="section compact">
+                        <div class="section-title">设备类型映射</div>
+                        <a-textarea v-model="typeMapText" :rows="6"></a-textarea>
+                    </div>
+
+                <div class="actions">
+                    <a-button type="primary" @click="preview">预览</a-button>
+                    <a-button @click="download">下载配置</a-button>
+                    <span class="hint">图元数量：{{ elementCount }}</span>
+                </div>
+            </div>
+
+            <div class="preview">
+                <div class="title">预览</div>
+                <div id="scene" class="scene"></div>
+            </div>
+        </div>
+
+        <script src="/dep/js/vue.min.js"></script>
+        <script src="/dep/js/vue-component-loader.js"></script>
+        <script src="/dep/plugins/ant-design/moment.js"></script>
+        <script src="/dep/plugins/ant-design/moment-with-locales.js"></script>
+        <script src="/dep/plugins/ant-design/antd-with-locales.min.js"></script>
+        <script src="/dep/plugins/ant-design/moment-locale-zh_cn.js"></script>
+        <script src="./index.js" type="module"></script>
+    </body>
+</html>
