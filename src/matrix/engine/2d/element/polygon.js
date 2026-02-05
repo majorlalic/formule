@@ -7,8 +7,8 @@ import { hexToRgba } from "../../../common/core/utils.js";
  * }
  */
 export default class Polygon extends Element2d {
-    constructor(ele) {
-        super(ele);
+    constructor(ele, ctx) {
+        super(ele, ctx);
     }
 
     init(ele) {

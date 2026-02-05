@@ -46,9 +46,10 @@ export class ElementDef {
      */
     conf;
 
-    constructor(ele) {
+    constructor(ele, ctx) {
         // 将属性赋给this
         Object.assign(this, ele);
+        this.scene = ctx?.scene;
         this.init(ele);
     }
 

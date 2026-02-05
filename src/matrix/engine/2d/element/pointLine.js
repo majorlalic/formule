@@ -27,8 +27,8 @@ import { getDeviceCanvas } from "../../3d/utils/canvas.js";
  * }
  */
 export default class PointLine extends Element2d {
-    constructor(ele) {
-        super(ele);
+    constructor(ele, ctx) {
+        super(ele, ctx);
     }
 
     async init(ele) {
@@ -38,12 +38,13 @@ export default class PointLine extends Element2d {
         this.group.add(this.line);
 
         let pointPosition = this._getPointAtPercent(this.line, ele.graph.percent);
+        let center = this._getLineCenter(this.line);
+        this.initName(center);
 
         // 图标
         this.point = await this._getPoint(ele.graph.icon, pointPosition);
         this.group.add(this.point);
 
-        // this.initName(center);
     }
 
     /**

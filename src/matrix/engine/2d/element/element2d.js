@@ -6,8 +6,8 @@ import { NameModes } from "../../../common/core/const.js";
  * @author wujiaqi
  */
 export default class Element2d extends ElementDef {
-    constructor(ele) {
-        super(ele);
+    constructor(ele, ctx) {
+        super(ele, ctx);
     }
 
     /**
@@ -25,9 +25,19 @@ export default class Element2d extends ElementDef {
         let nameMode = this.conf.nameMode || NameModes.Permanent;
         if (nameMode != NameModes.Hidden) {
             this.nameTag = this._getName(this.name, position);
-            this.group.add(this.nameTag);
+            this._nameOffset = {
+                x: position?.x || 0,
+                y: position?.y || 0,
+            };
+            this._nameVisibleFlag = nameMode != NameModes.Hover;
+            if (this.scene?.nameLayer) {
+                this.scene.nameLayer.add(this.nameTag);
+                this._syncNamePosition();
+            } else {
+                this.group.add(this.nameTag);
+            }
             if (nameMode == NameModes.Hover) {
-                this.nameTag.visible(false);
+                this._applyNameVisibility();
             }
         }
     }
@@ -37,8 +47,10 @@ export default class Element2d extends ElementDef {
      * @param {Boolean} isShow
      */
     toggleName(isShow) {
-        if (this.nameTag) {
-            this.nameTag.visible(isShow);
+        this._nameVisibleFlag = isShow;
+        this._applyNameVisibility();
+        if (this.scene?.nameLayer) {
+            this.scene.nameLayer.batchDraw();
         }
     }
 
@@ -57,6 +69,7 @@ export default class Element2d extends ElementDef {
     changeVisible(visible) {
         this.visible = visible;
         this.group.visible(this.visible);
+        this._applyNameVisibility();
         this.draw();
     }
 
@@ -72,6 +85,16 @@ export default class Element2d extends ElementDef {
             duration: duration, // 动画时长 秒
             easing: Konva.Easings.EaseInOut, // 缓动
         });
+        if (this.nameTag && this.scene?.nameLayer) {
+            const targetX = position.x + (this._nameOffset?.x || 0);
+            const targetY = position.y + (this._nameOffset?.y || 0);
+            this.nameTag.to({
+                x: targetX,
+                y: targetY,
+                duration: duration,
+                easing: Konva.Easings.EaseInOut,
+            });
+        }
     }
 
     /**
@@ -140,10 +163,31 @@ export default class Element2d extends ElementDef {
      * 通知场景需要更新, 貌似不调也ok
      */
     draw() {
+        if (this.scene?.nameLayer) {
+            this._syncNamePosition();
+        }
         this.group.getLayer().batchDraw();
+        if (this.scene?.nameLayer) {
+            this.scene.nameLayer.batchDraw();
+        }
     }
 
     _findLayerById(name) {
         return this.group.findOne(`.${name}`);
+    }
+
+    _syncNamePosition() {
+        if (!this.nameTag || !this.scene?.nameLayer) return;
+        const pos = this.group.position();
+        const x = pos.x + (this._nameOffset?.x || 0);
+        const y = pos.y + (this._nameOffset?.y || 0);
+        this.nameTag.position({ x, y });
+        this._applyNameVisibility();
+    }
+
+    _applyNameVisibility() {
+        if (!this.nameTag) return;
+        const show = this.visible !== false && this._nameVisibleFlag !== false;
+        this.nameTag.visible(show);
     }
 }

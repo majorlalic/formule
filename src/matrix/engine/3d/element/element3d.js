@@ -10,8 +10,8 @@ const NameHeight = 50;
  * @author wujiaqi
  */
 export default class Element3d extends ElementDef {
-    constructor(ele) {
-        super(ele);
+    constructor(ele, ctx) {
+        super(ele, ctx);
     }
 
     /**

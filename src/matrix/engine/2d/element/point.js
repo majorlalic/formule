@@ -13,8 +13,8 @@ import { getDeviceCanvas } from "../../3d/utils/canvas.js";
  * }
  */
 export default class Point extends Element2d {
-    constructor(ele) {
-        super(ele);
+    constructor(ele, ctx) {
+        super(ele, ctx);
     }
 
     async init(ele) {

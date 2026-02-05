@@ -18,8 +18,8 @@ import { ElementType } from "/matrix/common/core/const.js";
 export default class Point extends Element3d {
     nameHeight = 50;
 
-    constructor(ele) {
-        super(ele);
+    constructor(ele, ctx) {
+        super(ele, ctx);
     }
 
     async init(ele) {

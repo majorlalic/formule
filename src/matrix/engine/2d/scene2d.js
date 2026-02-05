@@ -29,11 +29,15 @@ export default class Scene2d extends SceneDef {
 
         this.stage = stage;
         this.eleLayer = new Konva.Layer();
+        this.nameLayer = new Konva.Layer();
+        this.nameLayer.listening(false);
 
         this._initConf(conf);
 
         this.stage.add(this.eleLayer);
+        this.stage.add(this.nameLayer);
         this.eleLayer.draw();
+        this.nameLayer.draw();
         this._initElements(elements);
 
         this.stage.on("click", (e) => {
@@ -152,6 +156,9 @@ export default class Scene2d extends SceneDef {
             target.group.zIndex = ele.zIndex || 1;
             this.eleLayer.add(target.group);
             this.eleMap.set(ele.id, target);
+            if (typeof target._syncNamePosition === "function") {
+                target._syncNamePosition();
+            }
 
             // 统一管理
             // if (ele.conf?.trigger && ele.conf?.trigger?.length != 0) {

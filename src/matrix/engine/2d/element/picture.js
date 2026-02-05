@@ -14,8 +14,8 @@ import Element2d from "./element2d.js";
  *  }
  */
 export default class Picture extends Element2d {
-    constructor(ele) {
-        super(ele);
+    constructor(ele, ctx) {
+        super(ele, ctx);
     }
 
     async init(ele) {
