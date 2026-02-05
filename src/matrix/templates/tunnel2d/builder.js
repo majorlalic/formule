@@ -32,6 +32,15 @@ const DEFAULT_OPTIONS = {
 };
 
 const genId = (prefix, index) => `${prefix}-${index}`;
+const normalizeDirection = (direction) => {
+    if (direction === 0 || direction === 1 || direction === 2) return direction;
+    if (typeof direction === "string") {
+        if (direction.includes("左")) return 1;
+        if (direction.includes("右")) return 0;
+        if (direction.includes("中")) return 2;
+    }
+    return 1;
+};
 
 /**
  * 生成隧道场景配置
@@ -40,6 +49,25 @@ const genId = (prefix, index) => `${prefix}-${index}`;
  */
 export function buildTunnelScene(devices = [], options = {}) {
     const opt = { ...DEFAULT_OPTIONS, ...options };
+    const normalizedDevices = (devices || []).map((dev) => {
+        const dpIds =
+            typeof dev?.dpId === "string"
+                ? dev.dpId
+                      .split(",")
+                      .map((item) => item.trim())
+                      .filter(Boolean)
+                : Array.isArray(dev?.dpId)
+                ? dev.dpId
+                : [];
+        return {
+            ...dev,
+            dir: normalizeDirection(dev?.direction ?? dev?.dir),
+            type: dev?.deviceTypeId ?? dev?.type,
+            sort: Number.isFinite(dev?.sort) ? dev.sort : dev?.mil || 0,
+            dpIds,
+            origin: dev,
+        };
+    });
     const sceneWidth = Number(opt.sceneWidth) || opt.tunnelWidth;
     const sceneHeight = Number(opt.sceneHeight) || opt.tunnelHeight;
     const originX = (sceneWidth - opt.tunnelWidth) / 2;
@@ -142,7 +170,7 @@ export function buildTunnelScene(devices = [], options = {}) {
     }
 
     const typeOrder = Array.from(
-        new Set(devices.map((d) => d.type))
+        new Set(normalizedDevices.map((d) => d.type))
     );
     typeOrder.forEach((type) => {
         const typeMeta = opt.deviceTypeMap[type] || {};
@@ -154,12 +182,12 @@ export function buildTunnelScene(devices = [], options = {}) {
         const centerY = (topY + bottomY) / 2 + offsetCenter;
 
         [1, 0].forEach((dir) => {
-            const list = devices
+            const list = normalizedDevices
                 .filter((d) => d.type === type && d.dir === dir)
                 .sort((a, b) => {
-                    const aMil = Number.isFinite(a?.mil) ? a.mil : 0;
-                    const bMil = Number.isFinite(b?.mil) ? b.mil : 0;
-                    return aMil - bMil;
+                    const aSort = Number.isFinite(a?.sort) ? a.sort : 0;
+                    const bSort = Number.isFinite(b?.sort) ? b.sort : 0;
+                    return aSort - bSort;
                 });
             const count = list.length;
             const stepX = count > 1 ? usableWidth / (count - 1) : 0;
@@ -168,6 +196,44 @@ export function buildTunnelScene(devices = [], options = {}) {
             list.forEach((dev, index) => {
         const x = originX + opt.offsetLeft + stepX * index;
         const y = dir === 1 ? baseY : mirrorY;
+        const bindings = [];
+        const data = { origin: dev.origin };
+        if (dev.dpIds?.length) {
+            dev.dpIds.forEach((dpId, dpIndex) => {
+                const key = dpIndex === 0 ? "value" : `value${dpIndex + 1}`;
+                data[key] = null;
+                bindings.push({
+                    tag: dpId,
+                    to: `data.${key}`,
+                });
+            });
+        }
+        const stateKey = `state_${dev.id}`;
+        data.color = null;
+        const stateMap =
+            typeMeta.stateMap || {
+                "-1": "#2F7CEE",
+                0: "#7B7A82",
+                1: "#7B7A82",
+                2: "#FF3040",
+            };
+        bindings.push({
+            tag: stateKey,
+            to: "data.color",
+            map: stateMap,
+        });
+        const actions = [
+            {
+                when: "data.value != null",
+                do: "changeValue",
+                params: { value: "@data.value" },
+            },
+            {
+                when: "data.color != null",
+                do: "changeColor",
+                params: { color: "@data.color" },
+            },
+        ];
 
         if (elementType === ElementType.Polyline) {
             const segStart = originX + opt.offsetLeft + segmentW * index;
@@ -187,21 +253,11 @@ export function buildTunnelScene(devices = [], options = {}) {
                         { x: segEnd, y },
                     ],
                 },
-                data: {
-                    state: 0,
-                },
-                bindings: dev.dp
-                    ? [
-                          {
-                              tag: dev.dp,
-                              to: opt.bindingTarget,
-                              default: 0,
-                          },
-                      ]
-                    : [],
+                data,
+                bindings,
                 conf: {
                     nameMode: opt.labelNameMode,
-                    actions: [],
+                    actions,
                     trigger: [],
                 },
             });
@@ -220,21 +276,11 @@ export function buildTunnelScene(devices = [], options = {}) {
                 icon: typeMeta.icon || "default",
                 position: { x, y },
             },
-            data: {
-                state: 0,
-            },
-            bindings: dev.dp
-                ? [
-                      {
-                          tag: dev.dp,
-                          to: opt.bindingTarget,
-                          default: 0,
-                      },
-                  ]
-                : [],
+            data,
+            bindings,
             conf: {
                 nameMode: opt.labelNameMode,
-                actions: [],
+                actions,
                 trigger: [],
             },
         });
@@ -244,12 +290,12 @@ export function buildTunnelScene(devices = [], options = {}) {
 
     const centerListByType = typeOrder.map((type) => ({
         type,
-        list: devices
+        list: normalizedDevices
             .filter((d) => d.type === type && d.dir === 2)
             .sort((a, b) => {
-                const aMil = Number.isFinite(a?.mil) ? a.mil : 0;
-                const bMil = Number.isFinite(b?.mil) ? b.mil : 0;
-                return aMil - bMil;
+                const aSort = Number.isFinite(a?.sort) ? a.sort : 0;
+                const bSort = Number.isFinite(b?.sort) ? b.sort : 0;
+                return aSort - bSort;
             }),
     }));
 
@@ -266,6 +312,44 @@ export function buildTunnelScene(devices = [], options = {}) {
         list.forEach((dev, index) => {
             const x = originX + opt.offsetLeft + stepX * index;
             const y = centerY;
+            const bindings = [];
+            const data = { origin: dev.origin };
+            if (dev.dpIds?.length) {
+                dev.dpIds.forEach((dpId, dpIndex) => {
+                    const key = dpIndex === 0 ? "value" : `value${dpIndex + 1}`;
+                    data[key] = null;
+                    bindings.push({
+                        tag: dpId,
+                        to: `data.${key}`,
+                    });
+                });
+            }
+            const stateKey = `state_${dev.id}`;
+            data.color = null;
+            const stateMap =
+                typeMeta.stateMap || {
+                    "-1": "#2F7CEE",
+                    0: "#7B7A82",
+                    1: "#7B7A82",
+                    2: "#FF3040",
+                };
+            bindings.push({
+                tag: stateKey,
+                to: "data.color",
+                map: stateMap,
+            });
+            const actions = [
+                {
+                    when: "data.value != null",
+                    do: "changeValue",
+                    params: { value: "@data.value" },
+                },
+                {
+                    when: "data.color != null",
+                    do: "changeColor",
+                    params: { color: "@data.color" },
+                },
+            ];
 
             if (elementType === ElementType.Polyline) {
                 const segStart = originX + opt.offsetLeft + segmentW * index;
@@ -285,21 +369,11 @@ export function buildTunnelScene(devices = [], options = {}) {
                             { x: segEnd, y },
                         ],
                     },
-                    data: {
-                        state: 0,
-                    },
-                    bindings: dev.dp
-                        ? [
-                              {
-                                  tag: dev.dp,
-                                  to: opt.bindingTarget,
-                                  default: 0,
-                              },
-                          ]
-                        : [],
+                    data,
+                    bindings,
                     conf: {
                         nameMode: opt.labelNameMode,
-                        actions: [],
+                        actions,
                         trigger: [],
                     },
                 });
@@ -318,21 +392,11 @@ export function buildTunnelScene(devices = [], options = {}) {
                     icon: typeMeta.icon || "default",
                     position: { x, y },
                 },
-                data: {
-                    state: 0,
-                },
-                bindings: dev.dp
-                    ? [
-                          {
-                              tag: dev.dp,
-                              to: opt.bindingTarget,
-                              default: 0,
-                          },
-                      ]
-                    : [],
+                data,
+                bindings,
                 conf: {
                     nameMode: opt.labelNameMode,
-                    actions: [],
+                    actions,
                     trigger: [],
                 },
             });

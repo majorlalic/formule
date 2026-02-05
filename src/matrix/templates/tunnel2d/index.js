@@ -22,31 +22,79 @@ const DEFAULT_TYPE_MAP = {
         icon: "radar",
         offset: 40,
         offsetCenter: 0,
+        stateMap: { "-1": "#2F7CEE", 0: "#7B7A82", 1: "#7B7A82", 2: "#FF3040" },
     },
     camera: {
         elementType: "Point",
         icon: "camera",
         offset: 80,
         offsetCenter: 0,
+        stateMap: { "-1": "#2F7CEE", 0: "#7B7A82", 1: "#7B7A82", 2: "#FF3040" },
     },
     door: {
         elementType: "Point",
         icon: "door",
         offset: 120,
         offsetCenter: 0,
+        stateMap: { "-1": "#2F7CEE", 0: "#7B7A82", 1: "#7B7A82", 2: "#FF3040" },
     },
     line_device: {
         elementType: "Polyline",
         offset: 0,
         offsetCenter: 0,
+        stateMap: { "-1": "#2F7CEE", 0: "#7B7A82", 1: "#7B7A82", 2: "#FF3040" },
     },
 };
 
 const SAMPLE_DEVICES = [
-    { id: "1001", name: "烟感 1", dir: 1, mil: 200, type: "smoke_sensor", dp: "1001-state" },   
-    { id: "1002", name: "摄像机 1", dir: 0, mil: 450, type: "camera", dp: "1002-state" },
-    { id: "1003", name: "风机 1", dir: 1, mil: 820, type: "line_device", dp: "1003-state" },
-    { id: "1004", name: "门禁 1", dir: 0, mil: 1200, type: "door", dp: "1004-state" },
+    {
+        id: "1001",
+        name: "烟感 1",
+        deviceNum: "F010001",
+        iotCode: "0.12.7",
+        sort: 200,
+        deviceTypeId: "smoke_sensor",
+        deviceTypeName: "烟感",
+        visualTemplate: null,
+        dpId: "1001-value,1001-value2",
+        direction: "左洞",
+    },
+    {
+        id: "1002",
+        name: "摄像机 1",
+        deviceNum: "F010002",
+        iotCode: "0.12.8",
+        sort: 450,
+        deviceTypeId: "camera",
+        deviceTypeName: "摄像机",
+        visualTemplate: null,
+        dpId: "1002-value",
+        direction: "右洞",
+    },
+    {
+        id: "1003",
+        name: "风机 1",
+        deviceNum: "F010003",
+        iotCode: "0.12.9",
+        sort: 820,
+        deviceTypeId: "line_device",
+        deviceTypeName: "风机",
+        visualTemplate: null,
+        dpId: "1003-value",
+        direction: "左洞",
+    },
+    {
+        id: "1004",
+        name: "门禁 1",
+        deviceNum: "F010004",
+        iotCode: "0.12.10",
+        sort: 1200,
+        deviceTypeId: "door",
+        deviceTypeName: "门禁",
+        visualTemplate: null,
+        dpId: "1004-value",
+        direction: "中导洞",
+    },
 ];
 
 let resolver;
@@ -137,31 +185,47 @@ new Vue({
                     minMil + (span * i) / Math.max(1, pairCount - 1)
                 );
                 const baseId = 1000 + i * 2;
+                const dpId =
+                    i % 4 === 0
+                        ? `${baseId}-value,${baseId}-value2`
+                        : `${baseId}-value`;
                 devices.push({
                     id: String(baseId),
                     name: `设备 ${i + 1}-上`,
-                    dir: 1,
-                    mil,
-                    type,
-                    dp: `${baseId}-state`,
+                    deviceNum: `F01${baseId}`,
+                    iotCode: `0.12.${i + 1}`,
+                    sort: mil,
+                    deviceTypeId: type,
+                    deviceTypeName: type,
+                    visualTemplate: null,
+                    dpId,
+                    direction: "左洞",
                 });
                 devices.push({
                     id: String(baseId + 1),
                     name: `设备 ${i + 1}-下`,
-                    dir: 0,
-                    mil,
-                    type,
-                    dp: `${baseId + 1}-state`,
+                    deviceNum: `F01${baseId + 1}`,
+                    iotCode: `0.12.${i + 1}`,
+                    sort: mil,
+                    deviceTypeId: type,
+                    deviceTypeName: type,
+                    visualTemplate: null,
+                    dpId,
+                    direction: "右洞",
                 });
                 if (i % 3 === 0) {
                     const centerId = baseId + 10000;
                     devices.push({
                         id: String(centerId),
                         name: `设备 ${i + 1}-中`,
-                        dir: 2,
-                        mil,
-                        type,
-                        dp: `${centerId}-state`,
+                        deviceNum: `F01${centerId}`,
+                        iotCode: `0.12.${i + 1}`,
+                        sort: mil,
+                        deviceTypeId: type,
+                        deviceTypeName: type,
+                        visualTemplate: null,
+                        dpId: `${centerId}-value`,
+                        direction: "中导洞",
                     });
                 }
             }
@@ -174,10 +238,14 @@ new Vue({
                 devices.push({
                     id: String(baseId),
                     name: `设备 ${pairCount + 1}-上`,
-                    dir: 1,
-                    mil,
-                    type,
-                    dp: `${baseId}-state`,
+                    deviceNum: `F01${baseId}`,
+                    iotCode: `0.12.${pairCount + 1}`,
+                    sort: mil,
+                    deviceTypeId: type,
+                    deviceTypeName: type,
+                    visualTemplate: null,
+                    dpId: `${baseId}-value`,
+                    direction: "左洞",
                 });
             }
             this.devicesText = JSON.stringify(devices, null, 2);
