@@ -25,6 +25,13 @@ export const ICONS = [
     },
     { name: "营区", value: "camp", url: "/common/images/icons/camp.svg" },
     { name: "场站", value: "station", url: "/common/images/icons/station.svg" },
+
+    { name: "温感", value: "temp", url: "/common/images/icons/temp.svg" },
+    { name: "烟感", value: "smoke", url: "/common/images/icons/smoke.svg" },
+    { name: "手报", value: "handle", url: "/common/images/icons/handle.svg" },
+    { name: "消报", value: "fireAlarm", url: "/common/images/icons/fireAlarm.svg" },
+    { name: "火焰", value: "fire", url: "/common/images/icons/fire.svg" },
+    { name: "声光", value: "soundLight", url: "/common/images/icons/soundLight.svg" },
 ];
 
 /**

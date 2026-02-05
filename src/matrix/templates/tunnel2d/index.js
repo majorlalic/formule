@@ -17,28 +17,56 @@ const DEFAULT_FORM = {
 };
 
 const DEFAULT_TYPE_MAP = {
-    smoke_sensor: {
+    "A.B.A.B": {
         elementType: "Point",
-        icon: "radar",
+        icon: "smoke",
         offset: 40,
         offsetCenter: 0,
         stateMap: { "-1": "#2F7CEE", 0: "#7B7A82", 1: "#7B7A82", 2: "#FF3040" },
     },
-    camera: {
+    "A.B.A.B": {
         elementType: "Point",
-        icon: "camera",
+        icon: "temp",
         offset: 80,
         offsetCenter: 0,
         stateMap: { "-1": "#2F7CEE", 0: "#7B7A82", 1: "#7B7A82", 2: "#FF3040" },
     },
-    door: {
+    "A.B.B": {
         elementType: "Point",
-        icon: "door",
+        icon: "handle",
         offset: 120,
         offsetCenter: 0,
         stateMap: { "-1": "#2F7CEE", 0: "#7B7A82", 1: "#7B7A82", 2: "#FF3040" },
     },
-    line_device: {
+    "A.B.A.G": {
+        elementType: "Point",
+        icon: "fire",
+        offset: 120,
+        offsetCenter: 0,
+        stateMap: { "-1": "#2F7CEE", 0: "#7B7A82", 1: "#7B7A82", 2: "#FF3040" },
+    },
+    "A.B.C.A": {
+        elementType: "Point",
+        icon: "soundLight",
+        offset: 120,
+        offsetCenter: 0,
+        stateMap: { "-1": "#2F7CEE", 0: "#7B7A82", 1: "#7B7A82", 2: "#FF3040" },
+    },
+    "A.B.A.H": {
+        elementType: "Point",
+        icon: "camera",
+        offset: 120,
+        offsetCenter: 0,
+        stateMap: { "-1": "#2F7CEE", 0: "#7B7A82", 1: "#7B7A82", 2: "#FF3040" },
+    },
+    "A.D.H": {
+        elementType: "Point",
+        icon: "fireAlarm",
+        offset: 120,
+        offsetCenter: 0,
+        stateMap: { "-1": "#2F7CEE", 0: "#7B7A82", 1: "#7B7A82", 2: "#FF3040" },
+    },
+    "D.B.F": {
         elementType: "TextLine",
         offset: 0,
         offsetCenter: 0,
