@@ -11,7 +11,6 @@ const DEFAULT_DEVICE_TYPES = {
     door: { elementType: ElementType.Point, icon: "door" },
     line_device: { elementType: ElementType.Polyline },
 };
-const DEFAULT_LINE_COLORS = ["#29c6ff", "#ff9d00", "#7cff5a", "#ff5abf"];
 
 const DEFAULT_OPTIONS = {
     sceneId: "tunnel-2d",
@@ -41,13 +40,20 @@ const genId = (prefix, index) => `${prefix}-${index}`;
  */
 export function buildTunnelScene(devices = [], options = {}) {
     const opt = { ...DEFAULT_OPTIONS, ...options };
+    const sceneWidth = Number(opt.sceneWidth) || opt.tunnelWidth;
+    const sceneHeight = Number(opt.sceneHeight) || opt.tunnelHeight;
+    const originX = (sceneWidth - opt.tunnelWidth) / 2;
+    const originY = (sceneHeight - opt.tunnelHeight) / 2;
     const usableWidth = Math.max(
         1,
         opt.tunnelWidth - opt.offsetLeft - opt.offsetRight
     );
 
-    const topY = opt.offsetTop;
-    const bottomY = Math.max(opt.offsetTop, opt.tunnelHeight - opt.offsetBottom);
+    const topY = originY + opt.offsetTop;
+    const bottomY = Math.max(
+        originY + opt.offsetTop,
+        originY + opt.tunnelHeight - opt.offsetBottom
+    );
 
     const elements = [];
 
@@ -63,8 +69,8 @@ export function buildTunnelScene(devices = [], options = {}) {
             url: opt.backgroundUrl,
             width: opt.tunnelWidth,
             height: opt.tunnelHeight,
-            x: 0,
-            y: 0,
+            x: originX,
+            y: originY,
             repeatXTimes: 1,
             repeatYTimes: 1,
         },
@@ -86,7 +92,10 @@ export function buildTunnelScene(devices = [], options = {}) {
             zIndex: 2,
             type: ElementType.Label,
             graph: {
-                position: { x: opt.offsetLeft, y: Math.max(0, opt.offsetTop - 20) },
+                position: {
+                    x: originX + opt.offsetLeft,
+                    y: Math.max(0, originY + opt.offsetTop - 20),
+                },
                 value: `${opt.startMil}m`,
             },
             data: { value: `${opt.startMil}m` },
@@ -111,7 +120,10 @@ export function buildTunnelScene(devices = [], options = {}) {
             zIndex: 2,
             type: ElementType.Label,
             graph: {
-                position: { x: opt.offsetLeft + usableWidth, y: Math.max(0, opt.offsetTop - 20) },
+                position: {
+                    x: originX + opt.offsetLeft + usableWidth,
+                    y: Math.max(0, originY + opt.offsetTop - 20),
+                },
                 value: `${opt.endMil}m`,
             },
             data: { value: `${opt.endMil}m` },
@@ -136,8 +148,10 @@ export function buildTunnelScene(devices = [], options = {}) {
         const typeMeta = opt.deviceTypeMap[type] || {};
         const elementType = typeMeta.elementType || ElementType.Point;
         const offsetY = Number(typeMeta.offset) || 0;
+        const offsetCenter = Number(typeMeta.offsetCenter) || 0;
         const baseY = topY + offsetY;
         const mirrorY = bottomY - offsetY;
+        const centerY = (topY + bottomY) / 2 + offsetCenter;
 
         [1, 0].forEach((dir) => {
             const list = devices
@@ -152,20 +166,13 @@ export function buildTunnelScene(devices = [], options = {}) {
             const segmentW = count > 0 ? usableWidth / count : usableWidth;
 
             list.forEach((dev, index) => {
-        const x = opt.offsetLeft + stepX * index;
+        const x = originX + opt.offsetLeft + stepX * index;
         const y = dir === 1 ? baseY : mirrorY;
 
         if (elementType === ElementType.Polyline) {
-            const segStart = opt.offsetLeft + segmentW * index;
-            const segEnd = opt.offsetLeft + segmentW * (index + 1);
-            const lineColors =
-                typeMeta.lineColors && typeMeta.lineColors.length
-                    ? typeMeta.lineColors
-                    : DEFAULT_LINE_COLORS;
-            const lineColor =
-                lineColors[index % lineColors.length] ||
-                dev.color ||
-                Colors.Normal;
+            const segStart = originX + opt.offsetLeft + segmentW * index;
+            const segEnd = originX + opt.offsetLeft + segmentW * (index + 1);
+            const lineColor = Colors.Normal;
             elements.push({
                 id: dev.id || genId(`line-${type}-${dir}`, index),
                 name: dev.name || "线形设备",
@@ -231,6 +238,103 @@ export function buildTunnelScene(devices = [], options = {}) {
                 trigger: [],
             },
         });
+            });
+        });
+    });
+
+    const centerListByType = typeOrder.map((type) => ({
+        type,
+        list: devices
+            .filter((d) => d.type === type && d.dir === 2)
+            .sort((a, b) => {
+                const aMil = Number.isFinite(a?.mil) ? a.mil : 0;
+                const bMil = Number.isFinite(b?.mil) ? b.mil : 0;
+                return aMil - bMil;
+            }),
+    }));
+
+    centerListByType.forEach((group) => {
+        const typeMeta = opt.deviceTypeMap[group.type] || {};
+        const elementType = typeMeta.elementType || ElementType.Point;
+        const offsetCenter = Number(typeMeta.offsetCenter) || 0;
+        const centerY = (topY + bottomY) / 2 + offsetCenter;
+        const list = group.list;
+        const count = list.length;
+        const stepX = count > 1 ? usableWidth / (count - 1) : 0;
+        const segmentW = count > 0 ? usableWidth / count : usableWidth;
+
+        list.forEach((dev, index) => {
+            const x = originX + opt.offsetLeft + stepX * index;
+            const y = centerY;
+
+            if (elementType === ElementType.Polyline) {
+                const segStart = opt.offsetLeft + segmentW * index;
+                const segEnd = opt.offsetLeft + segmentW * (index + 1);
+                const lineColor = Colors.Normal;
+                elements.push({
+                    id: dev.id || genId(`line-${group.type}-2`, index),
+                    name: dev.name || "线形设备",
+                    color: lineColor,
+                    visible: true,
+                    layer: [],
+                    zIndex: 3,
+                    type: ElementType.Polyline,
+                    graph: {
+                        positions: [
+                            { x: segStart, y },
+                            { x: segEnd, y },
+                        ],
+                    },
+                    data: {
+                        state: 0,
+                    },
+                    bindings: dev.dp
+                        ? [
+                              {
+                                  tag: dev.dp,
+                                  to: opt.bindingTarget,
+                                  default: 0,
+                              },
+                          ]
+                        : [],
+                    conf: {
+                        nameMode: opt.labelNameMode,
+                        actions: [],
+                        trigger: [],
+                    },
+                });
+                return;
+            }
+
+            elements.push({
+                id: dev.id || genId(`point-${group.type}-2`, index),
+                name: dev.name || "设备",
+                color: Colors.Normal,
+                visible: true,
+                layer: [],
+                zIndex: 3,
+                type: ElementType.Point,
+                graph: {
+                    icon: typeMeta.icon || "default",
+                    position: { x, y },
+                },
+                data: {
+                    state: 0,
+                },
+                bindings: dev.dp
+                    ? [
+                          {
+                              tag: dev.dp,
+                              to: opt.bindingTarget,
+                              default: 0,
+                          },
+                      ]
+                    : [],
+                conf: {
+                    nameMode: opt.labelNameMode,
+                    actions: [],
+                    trigger: [],
+                },
             });
         });
     });

@@ -17,13 +17,28 @@ const DEFAULT_FORM = {
 };
 
 const DEFAULT_TYPE_MAP = {
-    smoke_sensor: { elementType: "Point", icon: "radar", offset: 40 },
-    camera: { elementType: "Point", icon: "camera", offset: 80 },
-    door: { elementType: "Point", icon: "door", offset: 120 },
+    smoke_sensor: {
+        elementType: "Point",
+        icon: "radar",
+        offset: 40,
+        offsetCenter: 0,
+    },
+    camera: {
+        elementType: "Point",
+        icon: "camera",
+        offset: 80,
+        offsetCenter: 0,
+    },
+    door: {
+        elementType: "Point",
+        icon: "door",
+        offset: 120,
+        offsetCenter: 0,
+    },
     line_device: {
         elementType: "Polyline",
         offset: 0,
-        lineColors: ["#29c6ff", "#ff9d00", "#7cff5a"],
+        offsetCenter: 0,
     },
 };
 
@@ -82,10 +97,13 @@ new Vue({
         },
         buildScene() {
             const deviceTypeMap = this.parseTypeMap();
+            const sceneEl = document.getElementById("scene");
             const scene = buildTunnelScene(this.parseDevices(), {
                 ...this.form,
                 tunnelWidth: this.bgSize.width,
                 tunnelHeight: this.bgSize.height,
+                sceneWidth: sceneEl?.clientWidth || this.bgSize.width,
+                sceneHeight: sceneEl?.clientHeight || this.bgSize.height,
                 deviceTypeMap,
             });
             this.elementCount = scene.elements.length;
@@ -135,6 +153,17 @@ new Vue({
                     type,
                     dp: `${baseId + 1}-state`,
                 });
+                if (i % 3 === 0) {
+                    const centerId = baseId + 10000;
+                    devices.push({
+                        id: String(centerId),
+                        name: `设备 ${i + 1}-中`,
+                        dir: 2,
+                        mil,
+                        type,
+                        dp: `${centerId}-state`,
+                    });
+                }
             }
             if (count % 2 === 1) {
                 const type = types[pairCount % types.length] || "smoke_sensor";
