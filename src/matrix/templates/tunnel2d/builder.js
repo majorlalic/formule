@@ -11,6 +11,7 @@ const DEFAULT_DEVICE_TYPES = {
     door: { elementType: ElementType.Point, icon: "door" },
     line_device: { elementType: ElementType.Polyline },
 };
+const DEFAULT_LINE_COLORS = ["#29c6ff", "#ff9d00", "#7cff5a", "#ff5abf"];
 
 const DEFAULT_OPTIONS = {
     sceneId: "tunnel-2d",
@@ -40,12 +41,10 @@ const genId = (prefix, index) => `${prefix}-${index}`;
  */
 export function buildTunnelScene(devices = [], options = {}) {
     const opt = { ...DEFAULT_OPTIONS, ...options };
-    const length = Math.max(1, opt.endMil - opt.startMil);
     const usableWidth = Math.max(
         1,
         opt.tunnelWidth - opt.offsetLeft - opt.offsetRight
     );
-    const pxPerMil = usableWidth / length;
 
     const topY = opt.offsetTop;
     const bottomY = Math.max(opt.offsetTop, opt.tunnelHeight - opt.offsetBottom);
@@ -133,33 +132,52 @@ export function buildTunnelScene(devices = [], options = {}) {
     const typeOrder = Array.from(
         new Set(devices.map((d) => d.type))
     );
-    const typeIndexMap = new Map(
-        typeOrder.map((type, idx) => [type, idx])
-    );
-    const stepY = Math.max(1, Number(opt.typeGap) || 1);
-
-    devices.forEach((dev, index) => {
-        const typeMeta = opt.deviceTypeMap[dev.type] || {};
+    typeOrder.forEach((type) => {
+        const typeMeta = opt.deviceTypeMap[type] || {};
         const elementType = typeMeta.elementType || ElementType.Point;
-        const x = opt.offsetLeft + (dev.mil - opt.startMil) * pxPerMil;
-        const idx = typeIndexMap.get(dev.type) || 0;
-        const baseY = topY + stepY * idx;
-        const mirrorY = bottomY - stepY * idx;
-        const y = dev.dir === 1 ? baseY : mirrorY;
+        const offsetY = Number(typeMeta.offset) || 0;
+        const baseY = topY + offsetY;
+        const mirrorY = bottomY - offsetY;
+
+        [1, 0].forEach((dir) => {
+            const list = devices
+                .filter((d) => d.type === type && d.dir === dir)
+                .sort((a, b) => {
+                    const aMil = Number.isFinite(a?.mil) ? a.mil : 0;
+                    const bMil = Number.isFinite(b?.mil) ? b.mil : 0;
+                    return aMil - bMil;
+                });
+            const count = list.length;
+            const stepX = count > 1 ? usableWidth / (count - 1) : 0;
+            const segmentW = count > 0 ? usableWidth / count : usableWidth;
+
+            list.forEach((dev, index) => {
+        const x = opt.offsetLeft + stepX * index;
+        const y = dir === 1 ? baseY : mirrorY;
 
         if (elementType === ElementType.Polyline) {
+            const segStart = opt.offsetLeft + segmentW * index;
+            const segEnd = opt.offsetLeft + segmentW * (index + 1);
+            const lineColors =
+                typeMeta.lineColors && typeMeta.lineColors.length
+                    ? typeMeta.lineColors
+                    : DEFAULT_LINE_COLORS;
+            const lineColor =
+                lineColors[index % lineColors.length] ||
+                dev.color ||
+                Colors.Normal;
             elements.push({
-                id: dev.id || genId("line", index),
+                id: dev.id || genId(`line-${type}-${dir}`, index),
                 name: dev.name || "线形设备",
-                color: Colors.Normal,
+                color: lineColor,
                 visible: true,
                 layer: [],
                 zIndex: 3,
                 type: ElementType.Polyline,
                 graph: {
                     positions: [
-                        { x: x - 12, y },
-                        { x: x + 12, y },
+                        { x: segStart, y },
+                        { x: segEnd, y },
                     ],
                 },
                 data: {
@@ -184,7 +202,7 @@ export function buildTunnelScene(devices = [], options = {}) {
         }
 
         elements.push({
-            id: dev.id || genId("point", index),
+            id: dev.id || genId(`point-${type}-${dir}`, index),
             name: dev.name || "设备",
             color: Colors.Normal,
             visible: true,
@@ -212,6 +230,8 @@ export function buildTunnelScene(devices = [], options = {}) {
                 actions: [],
                 trigger: [],
             },
+        });
+            });
         });
     });
 

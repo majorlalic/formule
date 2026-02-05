@@ -17,10 +17,14 @@ const DEFAULT_FORM = {
 };
 
 const DEFAULT_TYPE_MAP = {
-    smoke_sensor: { elementType: "Point", icon: "radar", offset: 0 },
-    camera: { elementType: "Point", icon: "camera", offset: 40 },
-    door: { elementType: "Point", icon: "door", offset: 80 },
-    line_device: { elementType: "Polyline", offset: 0 },
+    smoke_sensor: { elementType: "Point", icon: "radar", offset: 40 },
+    camera: { elementType: "Point", icon: "camera", offset: 80 },
+    door: { elementType: "Point", icon: "door", offset: 120 },
+    line_device: {
+        elementType: "Polyline",
+        offset: 0,
+        lineColors: ["#29c6ff", "#ff9d00", "#7cff5a"],
+    },
 };
 
 const SAMPLE_DEVICES = [
