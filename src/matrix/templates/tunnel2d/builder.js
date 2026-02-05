@@ -180,7 +180,7 @@ export function buildTunnelScene(devices = [], options = {}) {
                 visible: true,
                 layer: [],
                 zIndex: 3,
-                type: ElementType.Polyline,
+                type: ElementType.Polyline, 
                 graph: {
                     positions: [
                         { x: segStart, y },
@@ -268,8 +268,8 @@ export function buildTunnelScene(devices = [], options = {}) {
             const y = centerY;
 
             if (elementType === ElementType.Polyline) {
-                const segStart = opt.offsetLeft + segmentW * index;
-                const segEnd = opt.offsetLeft + segmentW * (index + 1);
+                const segStart = originX + opt.offsetLeft + segmentW * index;
+                const segEnd = originX + opt.offsetLeft + segmentW * (index + 1);
                 const lineColor = Colors.Normal;
                 elements.push({
                     id: dev.id || genId(`line-${group.type}-2`, index),
