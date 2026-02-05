@@ -65,6 +65,7 @@ export const EventNames = {
 export const ElementType = {
     Point: "Point",
     Polyline: "Polyline",
+    TextLine: "TextLine",
     Polygon: "Polygon",
     Label: "Label",
     Modal: "Modal",
@@ -146,6 +147,9 @@ export const SceneTypeMeta = {
                 { field: "position", type: "vector2", label: "坐标" },
             ],
             [ElementType.Polyline]: [
+                { field: "positions", type: "vector2-array", label: "坐标" },
+            ],
+            [ElementType.TextLine]: [
                 { field: "positions", type: "vector2-array", label: "坐标" },
             ],
             [ElementType.Polygon]: [

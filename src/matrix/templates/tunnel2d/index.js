@@ -39,10 +39,11 @@ const DEFAULT_TYPE_MAP = {
         stateMap: { "-1": "#2F7CEE", 0: "#7B7A82", 1: "#7B7A82", 2: "#FF3040" },
     },
     line_device: {
-        elementType: "Polyline",
+        elementType: "TextLine",
         offset: 0,
         offsetCenter: 0,
         stateMap: { "-1": "#2F7CEE", 0: "#7B7A82", 1: "#7B7A82", 2: "#FF3040" },
+        nameMode: "Hidden",
     },
 };
 

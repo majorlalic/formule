@@ -198,6 +198,12 @@ export function buildTunnelScene(devices = [], options = {}) {
         const y = dir === 1 ? baseY : mirrorY;
         const bindings = [];
         const data = { origin: dev.origin };
+        if (elementType === ElementType.TextLine) {
+            data.isTextDown = dir !== 1;
+        }
+        if (elementType === ElementType.TextLine) {
+            data.value = "-";
+        }
         if (dev.dpIds?.length) {
             dev.dpIds.forEach((dpId, dpIndex) => {
                 const key = dpIndex === 0 ? "value" : `value${dpIndex + 1}`;
@@ -208,7 +214,7 @@ export function buildTunnelScene(devices = [], options = {}) {
                 });
             });
         }
-        const stateKey = `state_${dev.id}`;
+        const stateKey = `state-${dev.id}`;
         data.color = null;
         const stateMap =
             typeMeta.stateMap || {
@@ -256,7 +262,35 @@ export function buildTunnelScene(devices = [], options = {}) {
                 data,
                 bindings,
                 conf: {
-                    nameMode: opt.labelNameMode,
+                    nameMode: typeMeta.nameMode || opt.labelNameMode,
+                    actions,
+                    trigger: [],
+                },
+            });
+            return;
+        }
+
+        if (elementType === ElementType.TextLine) {
+            const segStart = originX + opt.offsetLeft + segmentW * index;
+            const segEnd = originX + opt.offsetLeft + segmentW * (index + 1);
+            elements.push({
+                id: dev.id || genId(`textline-${type}-${dir}`, index),
+                name: dev.name || "线形设备",
+                color: Colors.Normal,
+                visible: true,
+                layer: [],
+                zIndex: 3,
+                type: ElementType.TextLine,
+                graph: {
+                    positions: [
+                        { x: segStart, y },
+                        { x: segEnd, y },
+                    ],
+                },
+                data,
+                bindings,
+                conf: {
+                    nameMode: typeMeta.nameMode || opt.labelNameMode,
                     actions,
                     trigger: [],
                 },
@@ -279,7 +313,7 @@ export function buildTunnelScene(devices = [], options = {}) {
             data,
             bindings,
             conf: {
-                nameMode: opt.labelNameMode,
+                nameMode: typeMeta.nameMode || opt.labelNameMode,
                 actions,
                 trigger: [],
             },
@@ -314,6 +348,12 @@ export function buildTunnelScene(devices = [], options = {}) {
             const y = centerY;
             const bindings = [];
             const data = { origin: dev.origin };
+            if (elementType === ElementType.TextLine) {
+                data.isTextDown = true;
+            }
+            if (elementType === ElementType.TextLine) {
+                data.value = "-";
+            }
             if (dev.dpIds?.length) {
                 dev.dpIds.forEach((dpId, dpIndex) => {
                     const key = dpIndex === 0 ? "value" : `value${dpIndex + 1}`;
@@ -324,7 +364,7 @@ export function buildTunnelScene(devices = [], options = {}) {
                     });
                 });
             }
-            const stateKey = `state_${dev.id}`;
+            const stateKey = `state-${dev.id}`;
             data.color = null;
             const stateMap =
                 typeMeta.stateMap || {
@@ -372,7 +412,35 @@ export function buildTunnelScene(devices = [], options = {}) {
                     data,
                     bindings,
                     conf: {
-                        nameMode: opt.labelNameMode,
+                        nameMode: typeMeta.nameMode || opt.labelNameMode,
+                        actions,
+                        trigger: [],
+                    },
+                });
+                return;
+            }
+
+            if (elementType === ElementType.TextLine) {
+                const segStart = originX + opt.offsetLeft + segmentW * index;
+                const segEnd = originX + opt.offsetLeft + segmentW * (index + 1);
+                elements.push({
+                    id: dev.id || genId(`textline-${group.type}-2`, index),
+                    name: dev.name || "线形设备",
+                    color: Colors.Normal,
+                    visible: true,
+                    layer: [],
+                    zIndex: 3,
+                    type: ElementType.TextLine,
+                    graph: {
+                        positions: [
+                            { x: segStart, y },
+                            { x: segEnd, y },
+                        ],
+                    },
+                    data,
+                    bindings,
+                    conf: {
+                        nameMode: typeMeta.nameMode || opt.labelNameMode,
                         actions,
                         trigger: [],
                     },
@@ -395,7 +463,7 @@ export function buildTunnelScene(devices = [], options = {}) {
                 data,
                 bindings,
                 conf: {
-                    nameMode: opt.labelNameMode,
+                    nameMode: typeMeta.nameMode || opt.labelNameMode,
                     actions,
                     trigger: [],
                 },
