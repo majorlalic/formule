@@ -1,11 +1,13 @@
 import Resolver from "/matrix/common/core/resolver.js";
 import tunnelApi from "./api/tunnelApi.js";
+const eventBus = EventBusWorker.getInstance('tunnel');
 
 Vue.use(antd);
 
 let resolver;
 const TUNNEL_STATE_POLL_MS = 5000;
 const DEVICE_STATE_POLL_MS = 5000;
+const DP_VALUE_POLL_MS = 5000;
 const app = new Vue({
     el: "#app",
     data: {
@@ -18,6 +20,8 @@ const app = new Vue({
         stateTimer: null,
         deviceStateTimer: null,
         sceneStateIds: [],
+        dpValueTimer: null,
+        sceneDpIds: [],
         sceneMessage: "",
     },
     mounted() {
@@ -26,6 +30,7 @@ const app = new Vue({
     beforeDestroy() {
         this.stopTunnelStateLoop();
         this.stopDeviceStateLoop();
+        this.stopDpValueLoop();
     },
     methods: {
         async loadTunnels() {
@@ -87,9 +92,12 @@ const app = new Vue({
                     this.clearSceneContainer();
                     this.stopDeviceStateLoop();
                     this.sceneStateIds = [];
+                    this.stopDpValueLoop();
+                    this.sceneDpIds = [];
                     return;
                 }
                 this.sceneStateIds = this.extractSceneStateIds(scene);
+                this.sceneDpIds = this.extractSceneDpIds(scene);
                 this.centerSceneInView(scene);
                 if (!resolver) {
                     resolver = new Resolver("scene", scene, this);
@@ -98,6 +106,8 @@ const app = new Vue({
                 }
                 await this.refreshDeviceState();
                 this.startDeviceStateLoop();
+                await this.refreshDpValue();
+                this.startDpValueLoop();
             } finally {
                 this.sceneLoading = false;
             }
@@ -163,6 +173,22 @@ const app = new Vue({
             });
             return Array.from(ids);
         },
+        extractSceneDpIds(scene) {
+            if (!scene?.elements?.length) return [];
+            const ids = new Set();
+            scene.elements.forEach((ele) => {
+                const dpId = ele?.data?.origin?.dpId;
+                if (dpId) ids.add(dpId);
+                if (!Array.isArray(ele.bindings)) return;
+                ele.bindings.forEach((binding) => {
+                    const tag = binding?.tag || "";
+                    if (tag && !tag.startsWith("state-")) {
+                        ids.add(tag);
+                    }
+                });
+            });
+            return Array.from(ids);
+        },
         startDeviceStateLoop() {
             this.stopDeviceStateLoop();
             this.deviceStateTimer = window.setInterval(() => {
@@ -173,6 +199,42 @@ const app = new Vue({
             if (this.deviceStateTimer) {
                 window.clearInterval(this.deviceStateTimer);
                 this.deviceStateTimer = null;
+            }
+        },
+        async refreshDpValue() {
+            if (!this.sceneDpIds.length || !resolver) return;
+            try {
+                const res = await tunnelApi.getDpValue(this.sceneDpIds);
+                const list = Array.isArray(res?.[0]) ? res[0] : res || [];
+                const data = list.reduce((acc, item) => {
+                    const id = item.dataPointId || item.id;
+                    if (!id) return acc;
+                    const remark = item.remark || "";
+                    const value = item.value ?? "";
+                    const unit = item.unit || "";
+                    const text = remark
+                        ? `${value}${unit}`
+                        : `${value}${unit}`;
+                    acc[id] = text;
+                    return acc;
+                }, {});
+                if (Object.keys(data).length) {
+                    resolver.pushData([data]);
+                }
+            } catch (err) {
+                // ignore polling errors
+            }
+        },
+        startDpValueLoop() {
+            this.stopDpValueLoop();
+            this.dpValueTimer = window.setInterval(() => {
+                this.refreshDpValue();
+            }, DP_VALUE_POLL_MS);
+        },
+        stopDpValueLoop() {
+            if (this.dpValueTimer) {
+                window.clearInterval(this.dpValueTimer);
+                this.dpValueTimer = null;
             }
         },
         centerSceneInView(scene) {
