@@ -1,5 +1,7 @@
 import Resolver from "/matrix/common/core/resolver.js";
 import tunnelApi from "./api/tunnelApi.js";
+import EventBusWorker from "/common/js/eventBus/eventBusWorker.js";
+
 const eventBus = EventBusWorker.getInstance('tunnel');
 
 Vue.use(antd);
@@ -23,16 +25,43 @@ const app = new Vue({
         dpValueTimer: null,
         sceneDpIds: [],
         sceneMessage: "",
+        resizeTimer: null,
     },
     mounted() {
         this.loadTunnels();
+        this.bindResize();
     },
     beforeDestroy() {
         this.stopTunnelStateLoop();
         this.stopDeviceStateLoop();
         this.stopDpValueLoop();
+        this.unbindResize();
     },
     methods: {
+        bindResize() {
+            this.unbindResize();
+            this._onResize = () => {
+                if (this.resizeTimer) {
+                    window.clearTimeout(this.resizeTimer);
+                }
+                this.resizeTimer = window.setTimeout(() => {
+                    if (this.selectedId) {
+                        this.loadScene(this.selectedId);
+                    }
+                }, 200);
+            };
+            window.addEventListener("resize", this._onResize);
+        },
+        unbindResize() {
+            if (this._onResize) {
+                window.removeEventListener("resize", this._onResize);
+                this._onResize = null;
+            }
+            if (this.resizeTimer) {
+                window.clearTimeout(this.resizeTimer);
+                this.resizeTimer = null;
+            }
+        },
         async loadTunnels() {
             this.loading = true;
             try {
@@ -98,7 +127,6 @@ const app = new Vue({
                 }
                 this.sceneStateIds = this.extractSceneStateIds(scene);
                 this.sceneDpIds = this.extractSceneDpIds(scene);
-                this.centerSceneInView(scene);
                 if (!resolver) {
                     resolver = new Resolver("scene", scene, this);
                 } else {
@@ -236,31 +264,6 @@ const app = new Vue({
                 window.clearInterval(this.dpValueTimer);
                 this.dpValueTimer = null;
             }
-        },
-        centerSceneInView(scene) {
-            const sceneEl = document.getElementById("scene");
-            if (!sceneEl || !scene?.elements?.length) return;
-            const rect = sceneEl.getBoundingClientRect();
-            const viewWidth = rect.width || 1200;
-            const viewHeight = rect.height || 220;
-            const bg =
-                scene.elements.find((ele) => ele.id === "tunnel-bg") ||
-                scene.elements.find((ele) => ele.type === "Picture");
-            if (!bg?.graph) return;
-            const repeatX = bg.graph.repeatXTimes || 1;
-            const repeatY = bg.graph.repeatYTimes || 1;
-            const width = (bg.graph.width || 0) * repeatX;
-            const height = (bg.graph.height || 0) * repeatY;
-            const centerX = (bg.graph.x || 0) + width / 2;
-            const centerY = (bg.graph.y || 0) + height / 2;
-            const offsetX = viewWidth / 2 - centerX;
-            const offsetY = viewHeight / 2 - centerY;
-            scene.conf = scene.conf || {};
-            scene.conf.view = {
-                ...(scene.conf.view || {}),
-                offsetX,
-                offsetY,
-            };
         },
     },
 });

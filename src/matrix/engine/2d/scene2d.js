@@ -32,7 +32,7 @@ export default class Scene2d extends SceneDef {
         this.nameLayer = new Konva.Layer();
         this.nameLayer.listening(false);
 
-        this._initConf(conf);
+        this._initConf(conf, elements);
 
         this.stage.add(this.eleLayer);
         this.stage.add(this.nameLayer);
@@ -50,11 +50,12 @@ export default class Scene2d extends SceneDef {
      * 初始化场景配置
      * @param {Object} conf
      */
-    _initConf(conf) {
+    _initConf(conf, elements = []) {
         if (conf?.view) {
             const view = conf.view;
             const scale = Number(view.scale);
-            if (Number.isFinite(scale) && scale > 0) {
+            const useScale = Number.isFinite(scale) && scale > 0;
+            if (useScale) {
                 this.stage.scale({ x: scale, y: scale });
             }
             const offsetX = Number(view.offsetX);
@@ -64,6 +65,27 @@ export default class Scene2d extends SceneDef {
                     x: Number.isFinite(offsetX) ? offsetX : this.stage.x(),
                     y: Number.isFinite(offsetY) ? offsetY : this.stage.y(),
                 });
+            } else if (view.centerOn) {
+                const target =
+                    elements.find((ele) => ele.id === view.centerOn) ||
+                    elements.find((ele) => ele.type === view.centerOn);
+                if (target?.graph) {
+                    const repeatX = target.graph.repeatXTimes || 1;
+                    const repeatY = target.graph.repeatYTimes || 1;
+                    const width = (target.graph.width || 0) * repeatX;
+                    const height = (target.graph.height || 0) * repeatY;
+                    const centerX = (target.graph.x || 0) + width / 2;
+                    const centerY = (target.graph.y || 0) + height / 2;
+                    const viewWidth = this.stage.width();
+                    const viewHeight = this.stage.height();
+                    const scaleValue = useScale ? scale : 1;
+                    const centerOffsetX = viewWidth / 2 - centerX * scaleValue;
+                    const centerOffsetY = viewHeight / 2 - centerY * scaleValue;
+                    this.stage.position({
+                        x: centerOffsetX,
+                        y: centerOffsetY,
+                    });
+                }
             }
         }
         if (conf.draggable) {

@@ -478,6 +478,9 @@ export function buildTunnelScene(devices = [], options = {}) {
         conf: {
             draggable: true,
             dragDirection: ["x"],
+            view: {
+                centerOn: "tunnel-bg",
+            },
         },
         elements,
         anchors: [],
