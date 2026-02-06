@@ -17,6 +17,7 @@ const app = new Vue({
         alarmTunnelIds: [],
         stateTimer: null,
         deviceStateTimer: null,
+        sceneStateIds: [],
         sceneMessage: "",
     },
     mounted() {
@@ -85,8 +86,10 @@ const app = new Vue({
                 if (!scene) {
                     this.clearSceneContainer();
                     this.stopDeviceStateLoop();
+                    this.sceneStateIds = [];
                     return;
                 }
+                this.sceneStateIds = this.extractSceneStateIds(scene);
                 this.centerSceneInView(scene);
                 if (!resolver) {
                     resolver = new Resolver("scene", scene, this);
@@ -122,22 +125,43 @@ const app = new Vue({
             resolver = null;
         },
         async refreshDeviceState() {
-            if (!this.selectedId || !resolver) return;
+            if (!this.selectedId || !resolver || !this.sceneStateIds.length) return;
             try {
                 const res = await tunnelApi.getDeviceState(this.selectedId);
                 const list = Array.isArray(res?.[0]) ? res[0] : res || [];
-                const data = list.reduce((acc, item) => {
+                const alarmMap = list.reduce((acc, item) => {
                     const id = item.deviceId || item.id;
                     if (!id) return acc;
-                    acc[`state-${id}`] = item.contentClass;
+                    const value = item.contentClass;
+                    if (value === undefined || value === null) return acc;
+                    acc[id] = acc[id] === undefined ? value : Math.max(acc[id], value);
                     return acc;
                 }, {});
-                if (Object.keys(data).length) {
-                    resolver.pushData([data]);
-                }
+                const data = {};
+                this.sceneStateIds.forEach((id) => {
+                    const value = Object.prototype.hasOwnProperty.call(alarmMap, id)
+                        ? alarmMap[id]
+                        : -1;
+                    data[`state-${id}`] = value;
+                });
+                resolver.pushData([data]);
             } catch (err) {
                 // ignore polling errors
             }
+        },
+        extractSceneStateIds(scene) {
+            if (!scene?.elements?.length) return [];
+            const ids = new Set();
+            scene.elements.forEach((ele) => {
+                if (!Array.isArray(ele.bindings)) return;
+                ele.bindings.forEach((binding) => {
+                    const tag = binding?.tag || "";
+                    if (tag.startsWith("state-")) {
+                        ids.add(tag.slice("state-".length));
+                    }
+                });
+            });
+            return Array.from(ids);
         },
         startDeviceStateLoop() {
             this.stopDeviceStateLoop();
