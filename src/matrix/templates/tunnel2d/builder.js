@@ -251,7 +251,7 @@ export function buildTunnelScene(devices = [], options = {}) {
                 color: lineColor,
                 visible: true,
                 layer: [],
-                zIndex: 3,
+                zIndex: 2,
                 type: ElementType.Polyline, 
                 graph: {
                     positions: [
@@ -279,7 +279,7 @@ export function buildTunnelScene(devices = [], options = {}) {
                 color: Colors.Normal,
                 visible: true,
                 layer: [],
-                zIndex: 3,
+                zIndex: 2,
                 type: ElementType.TextLine,
                 graph: {
                     positions: [
@@ -401,7 +401,7 @@ export function buildTunnelScene(devices = [], options = {}) {
                     color: lineColor,
                     visible: true,
                     layer: [],
-                    zIndex: 3,
+                    zIndex: 2,
                     type: ElementType.Polyline,
                     graph: {
                         positions: [
@@ -429,7 +429,7 @@ export function buildTunnelScene(devices = [], options = {}) {
                     color: Colors.Normal,
                     visible: true,
                     layer: [],
-                    zIndex: 3,
+                    zIndex: 2,
                     type: ElementType.TextLine,
                     graph: {
                         positions: [
