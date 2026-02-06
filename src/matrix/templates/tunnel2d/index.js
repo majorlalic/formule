@@ -1,5 +1,6 @@
 import Resolver from "/matrix/common/core/resolver.js";
 import { downloadJson } from "/matrix/common/core/utils.js";
+import { ICONS } from "/matrix/common/core/const.js";
 import { buildTunnelScene } from "./builder.js";
 
 Vue.use(antd);
@@ -17,7 +18,7 @@ const DEFAULT_FORM = {
 };
 
 const DEFAULT_TYPE_MAP = {
-    "A.B.A.B": {
+    "A.B.A.A": {
         elementType: "Point",
         icon: "smoke",
         offset: 40,
@@ -34,21 +35,21 @@ const DEFAULT_TYPE_MAP = {
     "A.B.B": {
         elementType: "Point",
         icon: "handle",
-        offset: 120,
+        offset: 0,
         offsetCenter: 0,
         stateMap: { "-1": "#2F7CEE", 0: "#7B7A82", 1: "#7B7A82", 2: "#FF3040" },
     },
     "A.B.A.G": {
         elementType: "Point",
         icon: "fire",
-        offset: 120,
+        offset: 0,
         offsetCenter: 0,
         stateMap: { "-1": "#2F7CEE", 0: "#7B7A82", 1: "#7B7A82", 2: "#FF3040" },
     },
     "A.B.C.A": {
         elementType: "Point",
         icon: "soundLight",
-        offset: 120,
+        offset: 0,
         offsetCenter: 0,
         stateMap: { "-1": "#2F7CEE", 0: "#7B7A82", 1: "#7B7A82", 2: "#FF3040" },
     },
@@ -59,10 +60,17 @@ const DEFAULT_TYPE_MAP = {
         offsetCenter: 0,
         stateMap: { "-1": "#2F7CEE", 0: "#7B7A82", 1: "#7B7A82", 2: "#FF3040" },
     },
-    "A.D.H": {
+    "B.A.A":{
+        elementType: "Point",
+        icon: "camera",
+        offset: 0,
+        offsetCenter: 0,
+        stateMap: { "-1": "#2F7CEE", 0: "#7B7A82", 1: "#7B7A82", 2: "#FF3040" },
+    },
+    "A.D.A": {
         elementType: "Point",
         icon: "fireAlarm",
-        offset: 120,
+        offset: 0,
         offsetCenter: 0,
         stateMap: { "-1": "#2F7CEE", 0: "#7B7A82", 1: "#7B7A82", 2: "#FF3040" },
     },
@@ -136,6 +144,17 @@ new Vue({
         typeMapText: JSON.stringify(DEFAULT_TYPE_MAP, null, 2),
         elementCount: 0,
         bgSize: { width: 1200, height: 220 },
+        typeEditorVisible: false,
+        typeRows: [],
+        iconOptions: ICONS,
+        typeColumns: [
+            { title: "deviceTypeId", dataIndex: "deviceTypeId", key: "deviceTypeId", width: 160 },
+            { title: "elementType", dataIndex: "elementType", key: "elementType", scopedSlots: { customRender: "elementType" } },
+            { title: "icon", dataIndex: "icon", key: "icon", className: "icon-cell", scopedSlots: { customRender: "icon" } },
+            { title: "offset", dataIndex: "offset", key: "offset", scopedSlots: { customRender: "offset" } },
+            { title: "offsetCenter", dataIndex: "offsetCenter", key: "offsetCenter", scopedSlots: { customRender: "offsetCenter" } },
+            { title: "stateMap", dataIndex: "stateMapText", key: "stateMapText", scopedSlots: { customRender: "stateMap" } },
+        ],
     },
     mounted() {
         this.loadBgSize();
@@ -146,6 +165,21 @@ new Vue({
         },
     },
     methods: {
+        parseLooseJson(text) {
+            const raw = (text || "").trim();
+            if (!raw) return [];
+            try {
+                return JSON.parse(raw);
+            } catch (e) {
+                // Fallback: allow JS object/array literals in textarea
+                try {
+                    // eslint-disable-next-line no-new-func
+                    return new Function(`return (${raw});`)();
+                } catch (err) {
+                    return null;
+                }
+            }
+        },
         loadBgSize() {
             const img = new Image();
             img.onload = () => {
@@ -157,12 +191,12 @@ new Vue({
             img.src = this.form.backgroundUrl;
         },
         parseDevices() {
-            try {
-                return JSON.parse(this.devicesText || "[]");
-            } catch (e) {
-                this.$message.error("设备数据 JSON 解析失败");
+            const parsed = this.parseLooseJson(this.devicesText);
+            if (parsed == null) {
+                this.$message.error("设备数据解析失败");
                 return [];
             }
+            return Array.isArray(parsed) ? parsed : [parsed];
         },
         parseTypeMap() {
             try {
@@ -171,6 +205,124 @@ new Vue({
                 this.$message.error("类型映射 JSON 解析失败");
                 return {};
             }
+        },
+        openTypeEditor() {
+            const devices = this.parseDevices();
+            const typeIds = this.getTypeIdsFromDevices(devices);
+            const typeMap = this.parseTypeMap();
+            const keys = typeIds.length ? typeIds : Object.keys(typeMap);
+            const leftRightTypes = [];
+            const centerTypes = [];
+            devices.forEach((dev) => {
+                const typeId = dev.deviceTypeId || dev.type;
+                if (!typeId) return;
+                const dir = this.normalizeDirection(dev?.direction ?? dev?.dir);
+                if (dir === 2) {
+                    if (!centerTypes.includes(typeId)) centerTypes.push(typeId);
+                } else {
+                    if (!leftRightTypes.includes(typeId)) leftRightTypes.push(typeId);
+                }
+            });
+            const leftRightSet = new Set(leftRightTypes);
+            const centerSet = new Set(centerTypes);
+            const leftRightIndex = new Map();
+            const centerIndex = new Map();
+            let leftRightCounter = 0;
+            let centerCounter = 0;
+            keys.forEach((key) => {
+                if (leftRightSet.has(key)) {
+                    leftRightIndex.set(key, leftRightCounter);
+                    leftRightCounter += 1;
+                }
+                if (centerSet.has(key)) {
+                    centerIndex.set(key, centerCounter);
+                    centerCounter += 1;
+                }
+            });
+            const rows = keys.map((key, index) => {
+                const current = typeMap[key] || {};
+                const elementType = this.normalizeElementType(current.elementType) || "Point";
+                const offset = Number.isFinite(current.offset)
+                    ? current.offset
+                    : (leftRightIndex.get(key) ?? index) * 40;
+                const offsetCenter =
+                    Number.isFinite(current.offsetCenter)
+                        ? current.offsetCenter
+                        : this.getDefaultOffsetCenter(
+                              centerIndex.get(key) ?? index
+                          );
+                const stateMap = current.stateMap || {
+                    "-1": "#2F7CEE",
+                    0: "#7B7A82",
+                    1: "#7B7A82",
+                    2: "#FF3040",
+                };
+                return {
+                    deviceTypeId: key,
+                    elementType,
+                    icon: current.icon || "default",
+                    offset,
+                    offsetCenter,
+                    stateMapText: JSON.stringify(stateMap),
+                };
+            });
+            this.typeRows = rows;
+            this.typeEditorVisible = true;
+        },
+        saveTypeEditor() {
+            const map = {};
+            for (const row of this.typeRows) {
+                let stateMap = null;
+                try {
+                    stateMap = JSON.parse(row.stateMapText || "{}");
+                } catch (e) {
+                    this.$message.error(`stateMap 解析失败: ${row.deviceTypeId}`);
+                    return;
+                }
+                const elementType = this.normalizeElementType(row.elementType) || "Point";
+                const item = {
+                    elementType,
+                    offset: Number(row.offset) || 0,
+                    offsetCenter: Number(row.offsetCenter) || 0,
+                    stateMap,
+                };
+                if (elementType === "Point") {
+                    item.icon = row.icon || "default";
+                }
+                map[row.deviceTypeId] = item;
+            }
+            this.typeMapText = JSON.stringify(map, null, 2);
+            this.typeEditorVisible = false;
+        },
+        getTypeIdsFromDevices(devices = []) {
+            const ids = [];
+            devices.forEach((dev) => {
+                const id = dev.deviceTypeId || dev.type;
+                if (!id) return;
+                if (!ids.includes(id)) {
+                    ids.push(id);
+                }
+            });
+            return ids;
+        },
+        getDefaultOffsetCenter(index) {
+            if (index === 0) return 0;
+            const step = Math.ceil(index / 2) * 40;
+            return index % 2 === 1 ? -step : step;
+        },
+        normalizeDirection(direction) {
+            if (direction === 0 || direction === 1 || direction === 2) return direction;
+            if (typeof direction === "string") {
+                if (direction.includes("左")) return 1;
+                if (direction.includes("右")) return 0;
+                if (direction.includes("中")) return 2;
+            }
+            return 1;
+        },
+        normalizeElementType(value) {
+            if (!value) return "";
+            if (value === "Line") return "Polyline";
+            return value;
         },
         buildScene() {
             const deviceTypeMap = this.parseTypeMap();
@@ -280,16 +432,13 @@ new Vue({
             this.devicesText = JSON.stringify(devices, null, 2);
         },
         formatDevices() {
-            try {
-                const formatted = JSON.stringify(
-                    JSON.parse(this.devicesText || "[]"),
-                    null,
-                    2
-                );
-                this.devicesText = formatted;
-            } catch (e) {
-                this.$message.error("设备数据 JSON 格式错误");
+            const parsed = this.parseLooseJson(this.devicesText);
+            if (parsed == null) {
+                this.$message.error("设备数据格式错误");
+                return;
             }
+            const formatted = JSON.stringify(parsed, null, 2);
+            this.devicesText = formatted;
         },
     },
 });

@@ -15,6 +15,7 @@ import { getDeviceCanvas } from "../../3d/utils/canvas.js";
 export default class Point extends Element2d {
     constructor(ele, ctx) {
         super(ele, ctx);
+        this.iconScale = 2 / 3;
     }
 
     async init(ele) {
@@ -50,14 +51,16 @@ export default class Point extends Element2d {
      */
     async _getMesh(icon) {
         let canvas = await getDeviceCanvas(icon, this.color, true);
+        const width = canvas.width * this.iconScale;
+        const height = canvas.height * this.iconScale;
         const canvasImage = new Konva.Image({
             name: "body",
             image: canvas, // 直接用缓存 canvas
-            width: canvas.width,
-            height: canvas.height,
+            width,
+            height,
             offset: {
-                x: canvas.width / 2,
-                y: canvas.height / 2,
+                x: width / 2,
+                y: height / 2,
             },
         });
         return canvasImage;
