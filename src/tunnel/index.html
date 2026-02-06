@@ -12,8 +12,58 @@
     </head>
 
     <body>
-        <div id="app">
-            
+        <div id="app" class="tunnel-page">
+            <section class="tunnel-top">
+                <div class="top-head">
+                    <div class="title">隧道分区</div>
+                    <div class="subtitle">选择分区后在下方预览场景</div>
+                </div>
+                <div class="top-body">
+                    <a-row :gutter="[16, 16]" class="tunnel-grid">
+                        <a-col
+                            v-for="item in tunnels"
+                            :key="item.id"
+                            :xs="24"
+                            :sm="8"
+                            :md="6"
+                            :lg="4"
+                        >
+                            <a-card
+                                :class="[
+                                    'tunnel-card',
+                                    item.id === selectedId ? 'is-active' : '',
+                                ]"
+                                @click="selectTunnel(item)"
+                            >
+                                <div class="card-title">
+                                    {{ item.name || item.fullName || item.id }}
+                                </div>
+                                <div class="card-meta">
+                                    {{ item.parentName || "未分组" }}
+                                </div>
+                                <div class="card-id">ID: {{ item.id }}</div>
+                            </a-card>
+                        </a-col>
+                    </a-row>
+                    <div v-if="!tunnels.length && !loading" class="empty-tip">
+                        暂无分区数据
+                    </div>
+                    <div v-if="loading" class="loading-tip">加载中…</div>
+                </div>
+            </section>
+            <section class="tunnel-bottom">
+                <div class="scene-head">
+                    <div class="scene-title">
+                        当前分区：{{ currentTunnelName || "未选择" }}
+                    </div>
+                    <div class="scene-desc">
+                        场景文件：/tunnel/scene/{{ selectedId || "-" }}.json
+                    </div>
+                </div>
+                <div class="scene-shell">
+                    <div id="scene" class="scene-stage"></div>
+                </div>
+            </section>
         </div>
 
         <script src="/dep/js/echarts.min.js"></script>

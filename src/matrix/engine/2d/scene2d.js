@@ -51,6 +51,21 @@ export default class Scene2d extends SceneDef {
      * @param {Object} conf
      */
     _initConf(conf) {
+        if (conf?.view) {
+            const view = conf.view;
+            const scale = Number(view.scale);
+            if (Number.isFinite(scale) && scale > 0) {
+                this.stage.scale({ x: scale, y: scale });
+            }
+            const offsetX = Number(view.offsetX);
+            const offsetY = Number(view.offsetY);
+            if (Number.isFinite(offsetX) || Number.isFinite(offsetY)) {
+                this.stage.position({
+                    x: Number.isFinite(offsetX) ? offsetX : this.stage.x(),
+                    y: Number.isFinite(offsetY) ? offsetY : this.stage.y(),
+                });
+            }
+        }
         if (conf.draggable) {
             this._openDragAndZoom(this.stage, conf?.dragDirection);
         }

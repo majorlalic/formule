@@ -7,66 +7,160 @@ body,
     height: 100%;
     margin: 0;
     padding: 0;
+}
+
+body {
+    background: radial-gradient(1200px 600px at 20% -20%, #083D74 0%, #040B1D 55%, #040B1D 100%);
+    color: #ffffff;
+    font-family: "STKaiti", "KaiTi", "FangSong", serif;
+}
+
+.ant-card-body{
+    padding: 10px!important;
+}
+
+.tunnel-page {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+    box-sizing: border-box;
+    height: 100%;
+}
+
+.tunnel-top {
+    flex: 0 0 36%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: rgba(4, 11, 29, 0.8);
+    border: 1px solid rgba(8, 61, 116, 0.5);
+    border-radius: 16px;
+    padding: 12px;
+    overflow: hidden;
+    backdrop-filter: blur(6px);
+}
+
+.top-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+}
+
+.title {
+    font-size: 24px;
+    letter-spacing: 2px;
+}
+
+.subtitle {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.top-body {
+    flex: 1;
+    overflow: auto;
+    padding-right: 4px;
+}
+
+.tunnel-grid {
+    margin: 0;
+}
+
+.tunnel-card {
+    background: linear-gradient(145deg, rgba(8, 61, 116, 0.55), rgba(4, 11, 29, 0.9));
+    border: 1px solid rgba(8, 61, 116, 0.45);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border 0.2s ease;
+    min-height: 96px;
+}
+
+.tunnel-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 18px rgba(0, 0, 0, 0.35);
+}
+
+.tunnel-card.is-active {
+    border-color: rgba(255, 255, 255, 0.85);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25), 0 14px 24px rgba(8, 61, 116, 0.35);
+}
+
+.card-title {
+    font-size: 20px;
+    margin-bottom: 6px;
+    color: #fff;
+}
+
+.card-meta {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.75);
+    margin-bottom: 4px;
+}
+
+.card-id {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.55);
+    letter-spacing: 0.3px;
+}
+
+.empty-tip,
+.loading-tip {
+    padding: 10px 4px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.tunnel-bottom {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: rgba(4, 11, 29, 0.8);
+    border: 1px solid rgba(8, 61, 116, 0.5);
+    border-radius: 16px;
+    padding: 12px 14px;
+    overflow: hidden;
+    backdrop-filter: blur(6px);
+}
+
+.scene-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+}
+
+.scene-title {
+    font-size: 18px;
+}
+
+.scene-desc {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.scene-shell {
+    flex: 1;
+    min-height: 0;
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(8, 26, 54, 0.9), rgba(4, 11, 29, 0.98));
+    border: 1px dashed rgba(255, 255, 255, 0.18);
     overflow: hidden;
 }
 
-#scene {
+.scene-stage {
     width: 100%;
     height: 100%;
 }
 
-.cover {
-    border-radius: 14px;
-    z-index: 99;
-
-    box-shadow: 0 0 11px 0px rgba(255, 255, 255, 0.5);
-    font-size: 40px;
-    font-family: fangsong;
-    text-align: center;
-    color: #fff;
-    position: absolute;
-}
-
-.left {
-    left: 10px;
-    top: 0;
-    margin: 10px 0;
-    width: 340px;
-    height: calc(~"100% - 20px");
-}
-
-.right {
-    right: 10px;
-    top: 0;
-    margin: 10px 0;
-    width: 340px;
-    height: calc(~"100% - 20px");
-}
-
-.bottom {
-    width: 540px;
-    height: 100px;
-    bottom: 10px;
-    left: calc(~"50% - 270px");
-    display: flex;
-    justify-content:space-around;
-    align-items: center;
-
-    .layer {
-        width: 100px;
-        height: 50px;
-        line-height: 50px;
-        color: #fff;
-        font-size: 20px;
-        font-weight: bold;
-        box-shadow: 0 0 11px 0px rgba(255, 255, 255, 0.5);
-        border-radius: 14px;
-        cursor: pointer;
-        user-select: none;
+@media (max-width: 900px) {
+    .tunnel-top {
+        flex: 0 0 42%;
     }
-
-    .checked{
-        box-shadow: 0 0 11px 0px rgba(47, 124, 238, 1);
-        color: #2f7cee;
+    .scene-head {
+        flex-direction: column;
+        align-items: flex-start;
     }
 }
