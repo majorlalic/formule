@@ -4,6 +4,8 @@ import tunnelApi from "./api/tunnelApi.js";
 Vue.use(antd);
 
 let resolver;
+const TUNNEL_STATE_POLL_MS = 5000;
+const DEVICE_STATE_POLL_MS = 5000;
 const app = new Vue({
     el: "#app",
     data: {
@@ -12,9 +14,17 @@ const app = new Vue({
         currentTunnelName: "",
         loading: false,
         sceneLoading: false,
+        alarmTunnelIds: [],
+        stateTimer: null,
+        deviceStateTimer: null,
+        sceneMessage: "",
     },
     mounted() {
         this.loadTunnels();
+    },
+    beforeDestroy() {
+        this.stopTunnelStateLoop();
+        this.stopDeviceStateLoop();
     },
     methods: {
         async loadTunnels() {
@@ -26,11 +36,39 @@ const app = new Vue({
                 if (list.length) {
                     this.selectTunnel(list[0]);
                 }
+                await this.refreshTunnelState();
+                this.startTunnelStateLoop();
             } catch (err) {
                 this.$message.error("分区数据加载失败");
             } finally {
                 this.loading = false;
             }
+        },
+        async refreshTunnelState() {
+            try {
+                const res = await tunnelApi.getTunnelState();
+                const list = Array.isArray(res?.[0]) ? res[0] : res || [];
+                this.alarmTunnelIds = list
+                    .map((item) => item.areaId || item.id)
+                    .filter(Boolean);
+            } catch (err) {
+                this.alarmTunnelIds = [];
+            }
+        },
+        startTunnelStateLoop() {
+            this.stopTunnelStateLoop();
+            this.stateTimer = window.setInterval(() => {
+                this.refreshTunnelState();
+            }, TUNNEL_STATE_POLL_MS);
+        },
+        stopTunnelStateLoop() {
+            if (this.stateTimer) {
+                window.clearInterval(this.stateTimer);
+                this.stateTimer = null;
+            }
+        },
+        isAlarmTunnel(id) {
+            return this.alarmTunnelIds.includes(id);
         },
         async selectTunnel(item) {
             if (!item?.id) return;
@@ -41,15 +79,22 @@ const app = new Vue({
         },
         async loadScene(id) {
             this.sceneLoading = true;
+            this.sceneMessage = "";
             try {
                 const scene = await this.fetchSceneById(id);
-                if (!scene) return;
+                if (!scene) {
+                    this.clearSceneContainer();
+                    this.stopDeviceStateLoop();
+                    return;
+                }
                 this.centerSceneInView(scene);
                 if (!resolver) {
                     resolver = new Resolver("scene", scene, this);
                 } else {
                     resolver.initScene(scene);
                 }
+                await this.refreshDeviceState();
+                this.startDeviceStateLoop();
             } finally {
                 this.sceneLoading = false;
             }
@@ -60,13 +105,50 @@ const app = new Vue({
                     cache: "no-store",
                 });
                 if (!res.ok) {
-                    this.$message.error("场景文件未找到");
+                    this.sceneMessage = "场景文件未找到";
                     return null;
                 }
                 return await res.json();
             } catch (err) {
-                this.$message.error("场景加载失败");
+                this.sceneMessage = "场景加载失败";
                 return null;
+            }
+        },
+        clearSceneContainer() {
+            const sceneEl = document.getElementById("scene");
+            if (sceneEl) {
+                sceneEl.innerHTML = "";
+            }
+            resolver = null;
+        },
+        async refreshDeviceState() {
+            if (!this.selectedId || !resolver) return;
+            try {
+                const res = await tunnelApi.getDeviceState(this.selectedId);
+                const list = Array.isArray(res?.[0]) ? res[0] : res || [];
+                const data = list.reduce((acc, item) => {
+                    const id = item.deviceId || item.id;
+                    if (!id) return acc;
+                    acc[`state-${id}`] = item.contentClass;
+                    return acc;
+                }, {});
+                if (Object.keys(data).length) {
+                    resolver.pushData([data]);
+                }
+            } catch (err) {
+                // ignore polling errors
+            }
+        },
+        startDeviceStateLoop() {
+            this.stopDeviceStateLoop();
+            this.deviceStateTimer = window.setInterval(() => {
+                this.refreshDeviceState();
+            }, DEVICE_STATE_POLL_MS);
+        },
+        stopDeviceStateLoop() {
+            if (this.deviceStateTimer) {
+                window.clearInterval(this.deviceStateTimer);
+                this.deviceStateTimer = null;
             }
         },
         centerSceneInView(scene) {

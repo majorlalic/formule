@@ -32,6 +32,7 @@
                                 :class="[
                                     'tunnel-card',
                                     item.id === selectedId ? 'is-active' : '',
+                                    isAlarmTunnel(item.id) ? 'is-alarm' : '',
                                 ]"
                                 @click="selectTunnel(item)"
                             >
@@ -42,6 +43,12 @@
                                     {{ item.parentName || "未分组" }}
                                 </div>
                                 <div class="card-id">ID: {{ item.id }}</div>
+                                <div
+                                    v-if="isAlarmTunnel(item.id)"
+                                    class="card-alert"
+                                >
+                                    告警
+                                </div>
                             </a-card>
                         </a-col>
                     </a-row>
@@ -62,6 +69,9 @@
                 </div>
                 <div class="scene-shell">
                     <div id="scene" class="scene-stage"></div>
+                    <div v-if="sceneMessage" class="scene-empty">
+                        {{ sceneMessage }}
+                    </div>
                 </div>
             </section>
         </div>
