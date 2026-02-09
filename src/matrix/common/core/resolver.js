@@ -160,6 +160,9 @@ export default class Resolver {
      */
     _handeAction(type, ele, position, action = ele?.conf?.trigger.find((i) => i.type == type)) {
         // 给动作分发器处理
+        if(type == 'Click' && ele){
+            this.app.eleClick(ele);
+        }
         actionDispatcher.dispatch(ele, action, position);
     }
 

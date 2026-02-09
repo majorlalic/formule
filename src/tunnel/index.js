@@ -38,6 +38,10 @@ const app = new Vue({
         this.unbindResize();
     },
     methods: {
+        eleClick(ele){
+            console.log(ele);
+            eventBus.postMessage("click_ELement",  ele);
+        },
         bindResize() {
             this.unbindResize();
             this._onResize = () => {

@@ -78,6 +78,7 @@ export class ActionDispatcher {
             console.warn(
                 `尚未配置${action.actionType}, 请在ActionTypes在配置该动作`
             );
+            return;
         }
 
         // 1. 校验动作参数
