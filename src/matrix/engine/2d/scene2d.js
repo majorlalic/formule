@@ -1,5 +1,5 @@
 import { SceneDef } from "../../common/core/def/sceneDef.js";
-import { InteractionType, SceneType } from "../../common/core/const.js";
+import { InteractionType, SceneType, ElementType } from "../../common/core/const.js";
 import { ElementDef } from "../../common/core/def/elementDef.js";
 import { createElement } from "../../common/core/registry/elementRegistry.js";
 import "./element/index.js"; // 注册图元
@@ -207,9 +207,15 @@ export default class Scene2d extends SceneDef {
             // }
 
             target.group.on("mouseover", (e) => {
+                if (this._shouldUsePointer(target)) {
+                    this._setCursor("pointer");
+                }
                 this.handleEleEvent(target, InteractionType.Hover, e);
             });
             target.group.on("mouseout", (e) => {
+                if (this._shouldUsePointer(target)) {
+                    this._setCursor("default");
+                }
                 this.handleEleEvent(target, InteractionType.HoverOut, e);
             });
             target.group.on("mousedown", (e) => {
@@ -221,6 +227,23 @@ export default class Scene2d extends SceneDef {
         });
 
         this._sortLayerChildrenByZIndex(this.eleLayer);
+    }
+
+    _shouldUsePointer(ele) {
+        const type = ele?.type;
+        return [
+            ElementType.Point,
+            ElementType.Polyline,
+            ElementType.PointLine,
+            ElementType.TextLine,
+        ].includes(type);
+    }
+
+    _setCursor(cursor) {
+        const container = this.stage?.container();
+        if (container) {
+            container.style.cursor = cursor;
+        }
     }
 
     /**
