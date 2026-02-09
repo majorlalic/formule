@@ -208,11 +208,30 @@ export const getDeviceCanvas = (icon, color = Colors.Normal) => {
 };
 
 export const getNameTexture = (text, width, height, color = "white") => {
-    var canvas = document.createElement("canvas");
-    var context = canvas.getContext("2d");
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
     canvas.width = width;
     canvas.height = height;
 
+    const radius = 12;
+    context.shadowColor = "rgba(0, 0, 0, 0.25)";
+    context.shadowBlur = 8;
+    context.shadowOffsetX = 0;
+    context.shadowOffsetY = 3;
+    context.beginPath();
+    context.moveTo(radius, 0);
+    context.arcTo(width, 0, width, height, radius);
+    context.arcTo(width, height, 0, height, radius);
+    context.arcTo(0, height, 0, 0, radius);
+    context.arcTo(0, 0, width, 0, radius);
+    context.closePath();
+    context.fillStyle = "rgba(0, 0, 0, 0.35)";
+    context.fill();
+    context.lineWidth = 1;
+    context.strokeStyle = "rgba(0, 0, 0, 0.55)";
+    context.stroke();
+
+    context.shadowColor = "transparent";
     context.font = "bold 34px serif";
     context.textAlign = "center";
     context.fillStyle = color;

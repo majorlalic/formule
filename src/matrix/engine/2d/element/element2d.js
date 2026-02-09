@@ -131,9 +131,19 @@ export default class Element2d extends ElementDef {
     }
 
     _updateName(textObj, name) {
-        textObj.text(name);
-        // textObj.fill(color);
-        textObj.offsetX(textObj.width() / 2);
+        if (!textObj) return;
+        if (textObj.getClassName && textObj.getClassName() === "Label") {
+            const textNode = textObj.findOne("Text");
+            if (textNode) {
+                textNode.text(name);
+            }
+            const rect = textObj.getClientRect({ skipShadow: true });
+            textObj.offsetX(rect.width / 2);
+        } else if (typeof textObj.text === "function") {
+            textObj.text(name);
+            // textObj.fill(color);
+            textObj.offsetX(textObj.width() / 2);
+        }
         this.draw();
     }
 
@@ -145,18 +155,34 @@ export default class Element2d extends ElementDef {
      * @returns
      */
     _getName(value, position, y = 26) {
-        var text = new Konva.Text({
+        const label = new Konva.Label({
             name: "name",
+            x: position?.x || 0,
+            y: position?.y || 0,
+        });
+        const tag = new Konva.Tag({
+            fill: "rgba(0, 0, 0, 0.35)",
+            stroke: "rgba(0, 0, 0, 0.55)",
+            strokeWidth: 1,
+            cornerRadius: 8,
+            shadowColor: "rgba(0, 0, 0, 0.25)",
+            shadowBlur: 6,
+            shadowOffset: { x: 0, y: 2 },
+            shadowOpacity: 0.6,
+        });
+        const text = new Konva.Text({
             text: value,
             fontSize: 16,
             fontFamily: "Calibri",
             fill: "#fff",
-            x: position?.x || 0,
-            y: position?.y || 0,
+            padding: 6,
         });
-        text.offsetX(text.width() / 2);
-        text.offsetY(text.height() + y); // 让它在图标上方
-        return text;
+        label.add(tag);
+        label.add(text);
+        const rect = label.getClientRect({ skipShadow: true });
+        label.offsetX(rect.width / 2);
+        label.offsetY(rect.height + y); // 让它在图标上方
+        return label;
     }
 
     /**

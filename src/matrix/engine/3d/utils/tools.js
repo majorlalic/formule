@@ -2,10 +2,11 @@ import * as THREE from "three";
 import { TWEEN } from "three/addons/libs/tween.module.min.js";
 
 export const getCanvasTextWidth = (text) => {
-    var canvas = document.createElement("canvas");
-    var context = canvas.getContext("2d");
-    context.font = "30px serif";
-    return context.measureText(text).width + 20;
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+    context.font = "bold 34px serif";
+    const paddingX = 18;
+    return context.measureText(text).width + paddingX * 2;
 };
 
 export const getCenterPoint = (points) => {
