@@ -85,7 +85,7 @@ export default class TextLine extends Element2d {
 
     _updateTextPosition(center) {
         if (!this.text) return;
-        const gap = 8;
+        const gap = 20;
         const y = this._isTextDown
             ? center.y + gap
             : center.y - gap - this.text.height();

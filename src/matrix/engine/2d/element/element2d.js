@@ -161,8 +161,8 @@ export default class Element2d extends ElementDef {
             y: position?.y || 0,
         });
         const tag = new Konva.Tag({
-            fill: "rgba(0, 0, 0, 0.35)",
-            stroke: "rgba(0, 0, 0, 0.55)",
+            fill: "rgba(0, 0, 0, 0.5)",
+            stroke: "rgba(0, 0, 0, 0.75)",
             strokeWidth: 1,
             cornerRadius: 8,
             shadowColor: "rgba(0, 0, 0, 0.25)",

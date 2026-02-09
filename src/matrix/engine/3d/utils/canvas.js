@@ -225,10 +225,10 @@ export const getNameTexture = (text, width, height, color = "white") => {
     context.arcTo(0, height, 0, 0, radius);
     context.arcTo(0, 0, width, 0, radius);
     context.closePath();
-    context.fillStyle = "rgba(0, 0, 0, 0.35)";
+    context.fillStyle = "rgba(0, 0, 0, 0.5)";
     context.fill();
     context.lineWidth = 1;
-    context.strokeStyle = "rgba(0, 0, 0, 0.55)";
+    context.strokeStyle = "rgba(0, 0, 0, 0.75)";
     context.stroke();
 
     context.shadowColor = "transparent";
