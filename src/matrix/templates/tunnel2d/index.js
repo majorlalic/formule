@@ -12,9 +12,15 @@ const DEFAULT_FORM = {
     offsetRight: 80,
     offsetTop: 20,
     offsetBottom: 20,
-    backgroundUrl: "/common/images/tunnel.png",
+    minDeviceSpacing: 80,
     showStartEndLabel: true,
     mockCount: 100,
+};
+
+const TUNNEL_BACKGROUND = {
+    startUrl: "/common/images/tunnel_start.png",
+    centerUrl: "/common/images/tunnel_center.png",
+    endUrl: "/common/images/tunnel_end.png",
 };
 
 const DEFAULT_TYPE_MAP = {
@@ -144,6 +150,12 @@ new Vue({
         typeMapText: JSON.stringify(DEFAULT_TYPE_MAP, null, 2),
         elementCount: 0,
         bgSize: { width: 1200, height: 220 },
+        bgPartsSize: {
+            start: { width: 0, height: 0 },
+            center: { width: 0, height: 0 },
+            end: { width: 0, height: 0 },
+        },
+        loadBgSeq: 0,
         typeEditorVisible: false,
         typeRows: [],
         iconOptions: ICONS,
@@ -158,11 +170,6 @@ new Vue({
     },
     mounted() {
         this.loadBgSize();
-    },
-    watch: {
-        "form.backgroundUrl": function () {
-            this.loadBgSize();
-        },
     },
     methods: {
         parseLooseJson(text) {
@@ -180,15 +187,64 @@ new Vue({
                 }
             }
         },
-        loadBgSize() {
-            const img = new Image();
-            img.onload = () => {
-                this.bgSize = {
-                    width: img.width || 1200,
-                    height: img.height || 220,
+        loadImageSize(url) {
+            return new Promise((resolve) => {
+                if (!url) {
+                    resolve(null);
+                    return;
+                }
+                const img = new Image();
+                img.onload = () => {
+                    resolve({
+                        width: img.width || 0,
+                        height: img.height || 0,
+                    });
                 };
+                img.onerror = () => resolve(null);
+                img.src = url;
+            });
+        },
+        async loadBgSize() {
+            const seq = this.loadBgSeq + 1;
+            this.loadBgSeq = seq;
+
+            const [startSize, centerSize, endSize] = await Promise.all([
+                this.loadImageSize(TUNNEL_BACKGROUND.startUrl),
+                this.loadImageSize(TUNNEL_BACKGROUND.centerUrl),
+                this.loadImageSize(TUNNEL_BACKGROUND.endUrl),
+            ]);
+            if (this.loadBgSeq !== seq) return;
+
+            const hasSegment =
+                startSize?.width > 0 && centerSize?.width > 0 && endSize?.width > 0;
+
+            if (hasSegment) {
+                this.bgPartsSize = {
+                    start: startSize,
+                    center: centerSize,
+                    end: endSize,
+                };
+                this.bgSize = {
+                    width: startSize.width + centerSize.width + endSize.width,
+                    height: Math.max(
+                        startSize.height || 0,
+                        centerSize.height || 0,
+                        endSize.height || 0,
+                        220
+                    ),
+                };
+                return;
+            }
+
+            this.bgPartsSize = {
+                start: { width: 0, height: 0 },
+                center: { width: 0, height: 0 },
+                end: { width: 0, height: 0 },
             };
-            img.src = this.form.backgroundUrl;
+            this.bgSize = {
+                width: 1200,
+                height: 220,
+            };
         },
         parseDevices() {
             const parsed = this.parseLooseJson(this.devicesText);
@@ -329,8 +385,14 @@ new Vue({
             const sceneEl = document.getElementById("scene");
             const scene = buildTunnelScene(this.parseDevices(), {
                 ...this.form,
+                backgroundStartUrl: TUNNEL_BACKGROUND.startUrl,
+                backgroundCenterUrl: TUNNEL_BACKGROUND.centerUrl,
+                backgroundEndUrl: TUNNEL_BACKGROUND.endUrl,
                 tunnelWidth: this.bgSize.width,
                 tunnelHeight: this.bgSize.height,
+                backgroundStartWidth: this.bgPartsSize.start.width,
+                backgroundCenterWidth: this.bgPartsSize.center.width,
+                backgroundEndWidth: this.bgPartsSize.end.width,
                 sceneWidth: sceneEl?.clientWidth || this.bgSize.width,
                 sceneHeight: sceneEl?.clientHeight || this.bgSize.height,
                 deviceTypeMap,

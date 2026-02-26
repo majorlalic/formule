@@ -19,12 +19,19 @@ const DEFAULT_OPTIONS = {
     endMil: 2000,
     tunnelWidth: 1200,
     tunnelHeight: 220,
-    offsetLeft: 40, 
+    offsetLeft: 40,
     offsetRight: 40,
     offsetTop: 20,
     offsetBottom: 20,
     typeGap: 40,
     backgroundUrl: "/common/images/tunnel.png",
+    backgroundStartUrl: "/common/images/tunnel_start.png",
+    backgroundCenterUrl: "/common/images/tunnel_center.png",
+    backgroundEndUrl: "/common/images/tunnel_end.png",
+    backgroundStartWidth: 0,
+    backgroundCenterWidth: 0,
+    backgroundEndWidth: 0,
+    minDeviceSpacing: 80,
     showStartEndLabel: true,
     deviceTypeMap: DEFAULT_DEVICE_TYPES,
     bindingTarget: "data.state",
@@ -41,6 +48,14 @@ const normalizeDirection = (direction) => {
     }
     return 1;
 };
+
+const numOr = (value, fallback = 0) => {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : fallback;
+};
+
+const normalizeDimension = (value, fallback = 0, min = 0) =>
+    Math.max(min, numOr(value, fallback));
 
 /**
  * 生成隧道场景配置
@@ -68,47 +83,180 @@ export function buildTunnelScene(devices = [], options = {}) {
             origin: dev,
         };
     });
-    const sceneWidth = Number(opt.sceneWidth) || opt.tunnelWidth;
-    const sceneHeight = Number(opt.sceneHeight) || opt.tunnelHeight;
-    const originX = (sceneWidth - opt.tunnelWidth) / 2;
-    const originY = (sceneHeight - opt.tunnelHeight) / 2;
-    const usableWidth = Math.max(
+
+    const minDeviceSpacing = normalizeDimension(opt.minDeviceSpacing, 80, 1);
+    const groupCountMap = normalizedDevices.reduce((acc, dev) => {
+        const key = `${dev.type || "unknown"}-${dev.dir}`;
+        acc[key] = (acc[key] || 0) + 1;
+        return acc;
+    }, {});
+    const maxTrackDeviceCount = Math.max(
         1,
-        opt.tunnelWidth - opt.offsetLeft - opt.offsetRight
+        ...Object.values(groupCountMap).map((count) => Number(count) || 0)
+    );
+    const minUsableWidthByDensity =
+        maxTrackDeviceCount > 1
+            ? (maxTrackDeviceCount - 1) * minDeviceSpacing
+            : 1;
+
+    const offsetLeft = normalizeDimension(opt.offsetLeft, 40, 0);
+    const offsetRight = normalizeDimension(opt.offsetRight, 40, 0);
+    const offsetTop = normalizeDimension(opt.offsetTop, 20, 0);
+    const offsetBottom = normalizeDimension(opt.offsetBottom, 20, 0);
+
+    const baseTunnelWidth = normalizeDimension(opt.tunnelWidth, 1200, 1);
+    const baseSceneWidth = normalizeDimension(
+        opt.sceneWidth,
+        baseTunnelWidth,
+        baseTunnelWidth
+    );
+    const baseSceneHeight = normalizeDimension(
+        opt.sceneHeight,
+        opt.tunnelHeight,
+        opt.tunnelHeight
     );
 
-    const topY = originY + opt.offsetTop;
-    const bottomY = Math.max(
-        originY + opt.offsetTop,
-        originY + opt.tunnelHeight - opt.offsetBottom
-    );
+    const minTunnelWidthByDensity =
+        minUsableWidthByDensity + offsetLeft + offsetRight;
+    const targetTunnelWidth = Math.max(baseTunnelWidth, minTunnelWidthByDensity);
+
+    const startBgUrl = opt.backgroundStartUrl || opt.tunnelStartUrl;
+    const centerBgUrl = opt.backgroundCenterUrl || opt.tunnelCenterUrl;
+    const endBgUrl = opt.backgroundEndUrl || opt.tunnelEndUrl;
+
+    const startBgWidth = normalizeDimension(opt.backgroundStartWidth, 0, 0);
+    const centerBgWidth = normalizeDimension(opt.backgroundCenterWidth, 0, 0);
+    const endBgWidth = normalizeDimension(opt.backgroundEndWidth, 0, 0);
+
+    const useSegmentBackground =
+        Boolean(startBgUrl && centerBgUrl && endBgUrl) && centerBgWidth > 0;
+
+    let tunnelWidth = targetTunnelWidth;
+    let centerRepeatXTimes = 1;
+    if (useSegmentBackground) {
+        const fixedWidth = startBgWidth + endBgWidth;
+        const targetCenterWidth = Math.max(1, targetTunnelWidth - fixedWidth);
+        centerRepeatXTimes = Math.max(1, Math.ceil(targetCenterWidth / centerBgWidth));
+        tunnelWidth = fixedWidth + centerBgWidth * centerRepeatXTimes;
+    }
+
+    const sceneWidth = Math.max(baseSceneWidth, tunnelWidth);
+    const sceneHeight = baseSceneHeight;
+    const originX = (sceneWidth - tunnelWidth) / 2;
+    const originY = (sceneHeight - opt.tunnelHeight) / 2;
+    const usableWidth = Math.max(1, tunnelWidth - offsetLeft - offsetRight);
+
+    const topY = originY + offsetTop;
+    const bottomY = Math.max(originY + offsetTop, originY + opt.tunnelHeight - offsetBottom);
 
     const elements = [];
 
-    elements.push({
-        id: "tunnel-bg",
-        name: "隧道背景",
-        color: Colors.Default,
-        visible: true,
-        layer: [],
-        zIndex: 1,
-        type: ElementType.Picture,
-        graph: {
-            url: opt.backgroundUrl,
-            width: opt.tunnelWidth,
-            height: opt.tunnelHeight,
-            x: originX,
-            y: originY,
-            repeatXTimes: 1,
-            repeatYTimes: 1,
-        },
-        data: {},
-        conf: {
-            nameMode: NameModes.Hidden,
-            actions: [],
-            trigger: [],
-        },
-    });
+    if (useSegmentBackground) {
+        if (startBgWidth > 0) {
+            elements.push({
+                id: "tunnel-bg-start",
+                name: "隧道背景-起始",
+                color: Colors.Default,
+                visible: true,
+                layer: [],
+                zIndex: 1,
+                type: ElementType.Picture,
+                graph: {
+                    url: startBgUrl,
+                    width: startBgWidth,
+                    height: opt.tunnelHeight,
+                    x: originX,
+                    y: originY,
+                    repeatXTimes: 1,
+                    repeatYTimes: 1,
+                },
+                data: {},
+                conf: {
+                    nameMode: NameModes.Hidden,
+                    actions: [],
+                    trigger: [],
+                },
+            });
+        }
+
+        const centerX = originX + startBgWidth;
+        elements.push({
+            id: "tunnel-bg",
+            name: "隧道背景",
+            color: Colors.Default,
+            visible: true,
+            layer: [],
+            zIndex: 1,
+            type: ElementType.Picture,
+            graph: {
+                url: centerBgUrl,
+                width: centerBgWidth,
+                height: opt.tunnelHeight,
+                x: centerX,
+                y: originY,
+                repeatXTimes: centerRepeatXTimes,
+                repeatYTimes: 1,
+            },
+            data: {},
+            conf: {
+                nameMode: NameModes.Hidden,
+                actions: [],
+                trigger: [],
+            },
+        });
+
+        if (endBgWidth > 0) {
+            elements.push({
+                id: "tunnel-bg-end",
+                name: "隧道背景-末端",
+                color: Colors.Default,
+                visible: true,
+                layer: [],
+                zIndex: 1,
+                type: ElementType.Picture,
+                graph: {
+                    url: endBgUrl,
+                    width: endBgWidth,
+                    height: opt.tunnelHeight,
+                    x: centerX + centerBgWidth * centerRepeatXTimes,
+                    y: originY,
+                    repeatXTimes: 1,
+                    repeatYTimes: 1,
+                },
+                data: {},
+                conf: {
+                    nameMode: NameModes.Hidden,
+                    actions: [],
+                    trigger: [],
+                },
+            });
+        }
+    } else {
+        elements.push({
+            id: "tunnel-bg",
+            name: "隧道背景",
+            color: Colors.Default,
+            visible: true,
+            layer: [],
+            zIndex: 1,
+            type: ElementType.Picture,
+            graph: {
+                url: opt.backgroundUrl,
+                width: tunnelWidth,
+                height: opt.tunnelHeight,
+                x: originX,
+                y: originY,
+                repeatXTimes: 1,
+                repeatYTimes: 1,
+            },
+            data: {},
+            conf: {
+                nameMode: NameModes.Hidden,
+                actions: [],
+                trigger: [],
+            },
+        });
+    }
 
     if (opt.showStartEndLabel) {
         elements.push({
@@ -121,8 +269,8 @@ export function buildTunnelScene(devices = [], options = {}) {
             type: ElementType.Label,
             graph: {
                 position: {
-                    x: originX + opt.offsetLeft,
-                    y: Math.max(0, originY + opt.offsetTop - 20),
+                    x: originX + offsetLeft,
+                    y: Math.max(0, originY + offsetTop - 20),
                 },
                 value: `${opt.startMil}m`,
             },
@@ -149,8 +297,8 @@ export function buildTunnelScene(devices = [], options = {}) {
             type: ElementType.Label,
             graph: {
                 position: {
-                    x: originX + opt.offsetLeft + usableWidth,
-                    y: Math.max(0, originY + opt.offsetTop - 20),
+                    x: originX + offsetLeft + usableWidth,
+                    y: Math.max(0, originY + offsetTop - 20),
                 },
                 value: `${opt.endMil}m`,
             },
@@ -169,9 +317,7 @@ export function buildTunnelScene(devices = [], options = {}) {
         });
     }
 
-    const typeOrder = Array.from(
-        new Set(normalizedDevices.map((d) => d.type))
-    );
+    const typeOrder = Array.from(new Set(normalizedDevices.map((d) => d.type)));
     typeOrder.forEach((type) => {
         const typeMeta = opt.deviceTypeMap[type] || {};
         const elementType = typeMeta.elementType || ElementType.Point;
@@ -194,130 +340,128 @@ export function buildTunnelScene(devices = [], options = {}) {
             const segmentW = count > 0 ? usableWidth / count : usableWidth;
 
             list.forEach((dev, index) => {
-        const x = originX + opt.offsetLeft + stepX * index;
-        const y = dir === 1 ? baseY : mirrorY;
-        const bindings = [];
-        const data = { origin: dev.origin };
-        if (elementType === ElementType.TextLine) {
-            data.isTextDown = dir !== 1;
-        }
-        if (elementType === ElementType.TextLine) {
-            data.value = "-";
-        }
-        if (dev.dpIds?.length) {
-            dev.dpIds.forEach((dpId, dpIndex) => {
-                const key = dpIndex === 0 ? "value" : `value${dpIndex + 1}`;
-                data[key] = null;
+                const x = originX + offsetLeft + stepX * index;
+                const y = dir === 1 ? baseY : mirrorY;
+                const bindings = [];
+                const data = { origin: dev.origin };
+                if (elementType === ElementType.TextLine) {
+                    data.isTextDown = dir !== 1;
+                    data.value = "-";
+                }
+                if (dev.dpIds?.length) {
+                    dev.dpIds.forEach((dpId, dpIndex) => {
+                        const key = dpIndex === 0 ? "value" : `value${dpIndex + 1}`;
+                        data[key] = null;
+                        bindings.push({
+                            tag: dpId,
+                            to: `data.${key}`,
+                        });
+                    });
+                }
+                const stateKey = `state-${dev.id}`;
+                data.color = null;
+                const stateMap =
+                    typeMeta.stateMap || {
+                        "-1": "#2F7CEE",
+                        0: "#7B7A82",
+                        1: "#7B7A82",
+                        2: "#FF3040",
+                    };
                 bindings.push({
-                    tag: dpId,
-                    to: `data.${key}`,
+                    tag: stateKey,
+                    to: "data.color",
+                    map: stateMap,
                 });
-            });
-        }
-        const stateKey = `state-${dev.id}`;
-        data.color = null;
-        const stateMap =
-            typeMeta.stateMap || {
-                "-1": "#2F7CEE",
-                0: "#7B7A82",
-                1: "#7B7A82",
-                2: "#FF3040",
-            };
-        bindings.push({
-            tag: stateKey,
-            to: "data.color",
-            map: stateMap,
-        });
-        const actions = [
-            {
-                when: "data.value != null",
-                do: "changeValue",
-                params: { value: "@data.value" },
-            },
-            {
-                when: "data.color != null",
-                do: "changeColor",
-                params: { color: "@data.color" },
-            },
-        ];
+                const actions = [
+                    {
+                        when: "data.value != null",
+                        do: "changeValue",
+                        params: { value: "@data.value" },
+                    },
+                    {
+                        when: "data.color != null",
+                        do: "changeColor",
+                        params: { color: "@data.color" },
+                    },
+                ];
 
-        if (elementType === ElementType.Polyline) {
-            const segStart = originX + opt.offsetLeft + segmentW * index;
-            const segEnd = originX + opt.offsetLeft + segmentW * (index + 1);
-            const lineColor = Colors.Normal;
-            elements.push({
-                id: dev.id || genId(`line-${type}-${dir}`, index),
-                name: dev.name || "线形设备",
-                color: lineColor,
-                visible: true,
-                layer: [],
-                zIndex: 2,
-                type: ElementType.Polyline, 
-                graph: {
-                    positions: [
-                        { x: segStart, y },
-                        { x: segEnd, y },
-                    ],
-                },
-                data,
-                bindings,
-                conf: {
-                    nameMode: typeMeta.nameMode || opt.labelNameMode,
-                    actions,
-                    trigger: [],
-                },
-            });
-            return;
-        }
+                if (elementType === ElementType.Polyline) {
+                    const segStart = originX + offsetLeft + segmentW * index;
+                    const segEnd = originX + offsetLeft + segmentW * (index + 1);
+                    const lineColor = Colors.Normal;
+                    elements.push({
+                        id: dev.id || genId(`line-${type}-${dir}`, index),
+                        name: dev.name || "线形设备",
+                        color: lineColor,
+                        visible: true,
+                        layer: [],
+                        zIndex: 2,
+                        type: ElementType.Polyline,
+                        graph: {
+                            positions: [
+                                { x: segStart, y },
+                                { x: segEnd, y },
+                            ],
+                        },
+                        data,
+                        bindings,
+                        conf: {
+                            nameMode: typeMeta.nameMode || opt.labelNameMode,
+                            actions,
+                            trigger: [],
+                        },
+                    });
+                    return;
+                }
 
-        if (elementType === ElementType.TextLine) {
-            const segStart = originX + opt.offsetLeft + segmentW * index;
-            const segEnd = originX + opt.offsetLeft + segmentW * (index + 1);
-            elements.push({
-                id: dev.id || genId(`textline-${type}-${dir}`, index),
-                name: dev.name || "线形设备",
-                color: Colors.Normal,
-                visible: true,
-                layer: [],
-                zIndex: 2,
-                type: ElementType.TextLine,
-                graph: {
-                    positions: [
-                        { x: segStart, y },
-                        { x: segEnd, y },
-                    ],
-                },
-                data,
-                bindings,
-                conf: {
-                    nameMode: typeMeta.nameMode || opt.labelNameMode,
-                    actions,
-                    trigger: [],
-                },
-            });
-            return;
-        }
+                if (elementType === ElementType.TextLine) {
+                    const segStart = originX + offsetLeft + segmentW * index;
+                    const segEnd = originX + offsetLeft + segmentW * (index + 1);
+                    elements.push({
+                        id: dev.id || genId(`textline-${type}-${dir}`, index),
+                        name: dev.name || "线形设备",
+                        color: Colors.Normal,
+                        visible: true,
+                        layer: [],
+                        zIndex: 2,
+                        type: ElementType.TextLine,
+                        graph: {
+                            positions: [
+                                { x: segStart, y },
+                                { x: segEnd, y },
+                            ],
+                        },
+                        data,
+                        bindings,
+                        conf: {
+                            nameMode: typeMeta.nameMode || opt.labelNameMode,
+                            actions,
+                            trigger: [],
+                        },
+                    });
+                    return;
+                }
 
-        elements.push({
-            id: dev.id || genId(`point-${type}-${dir}`, index),
-            name: dev.name || "设备",
-            color: Colors.Normal,
-            visible: true,
-            layer: [],
-            zIndex: 3,
-            type: ElementType.Point,
-            graph: {
-                icon: typeMeta.icon || "default",
-                position: { x, y },
-            },
-            data,
-            bindings,
-            conf: {
-                nameMode: typeMeta.nameMode || opt.labelNameMode,
-                actions,
-                trigger: [],
-            },
-        });
+                elements.push({
+                    id: dev.id || genId(`point-${type}-${dir}`, index),
+                    name: dev.name || "设备",
+                    color: Colors.Normal,
+                    visible: true,
+                    layer: [],
+                    zIndex: 3,
+                    type: ElementType.Point,
+                    graph: {
+                        icon: typeMeta.icon || "default",
+                        position: { x, y },
+                    },
+                    data,
+                    bindings,
+                    conf: {
+                        nameMode: typeMeta.nameMode || opt.labelNameMode,
+                        actions,
+                        trigger: [],
+                    },
+                });
             });
         });
     });
@@ -344,14 +488,12 @@ export function buildTunnelScene(devices = [], options = {}) {
         const segmentW = count > 0 ? usableWidth / count : usableWidth;
 
         list.forEach((dev, index) => {
-            const x = originX + opt.offsetLeft + stepX * index;
+            const x = originX + offsetLeft + stepX * index;
             const y = centerY;
             const bindings = [];
             const data = { origin: dev.origin };
             if (elementType === ElementType.TextLine) {
                 data.isTextDown = true;
-            }
-            if (elementType === ElementType.TextLine) {
                 data.value = "-";
             }
             if (dev.dpIds?.length) {
@@ -392,8 +534,8 @@ export function buildTunnelScene(devices = [], options = {}) {
             ];
 
             if (elementType === ElementType.Polyline) {
-                const segStart = originX + opt.offsetLeft + segmentW * index;
-                const segEnd = originX + opt.offsetLeft + segmentW * (index + 1);
+                const segStart = originX + offsetLeft + segmentW * index;
+                const segEnd = originX + offsetLeft + segmentW * (index + 1);
                 const lineColor = Colors.Normal;
                 elements.push({
                     id: dev.id || genId(`line-${group.type}-2`, index),
@@ -421,8 +563,8 @@ export function buildTunnelScene(devices = [], options = {}) {
             }
 
             if (elementType === ElementType.TextLine) {
-                const segStart = originX + opt.offsetLeft + segmentW * index;
-                const segEnd = originX + opt.offsetLeft + segmentW * (index + 1);
+                const segStart = originX + offsetLeft + segmentW * index;
+                const segEnd = originX + offsetLeft + segmentW * (index + 1);
                 elements.push({
                     id: dev.id || genId(`textline-${group.type}-2`, index),
                     name: dev.name || "线形设备",
