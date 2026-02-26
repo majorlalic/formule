@@ -23,6 +23,13 @@ const TUNNEL_BACKGROUND = {
     endUrl: "/common/images/tunnel_end.png",
 };
 
+const DEFAULT_STATE_MAP = {
+    "-1": "#2F7CEE",
+    0: "#7B7A82",
+    1: "#7B7A82",
+    2: "#FF3040",
+};
+
 const DEFAULT_TYPE_MAP = {
     "A.B.A.A": {
         elementType: "Point",
@@ -85,7 +92,6 @@ const DEFAULT_TYPE_MAP = {
         offset: 0,
         offsetCenter: 0,
         stateMap: { "-1": "#2F7CEE", 0: "#7B7A82", 1: "#7B7A82", 2: "#FF3040" },
-        nameMode: "Hidden",
     },
 };
 
@@ -170,6 +176,12 @@ new Vue({
     },
     mounted() {
         this.loadBgSize();
+        this.syncTypeMapWithDevices();
+    },
+    watch: {
+        devicesText() {
+            this.syncTypeMapWithDevices();
+        },
     },
     methods: {
         parseLooseJson(text) {
@@ -254,69 +266,125 @@ new Vue({
             }
             return Array.isArray(parsed) ? parsed : [parsed];
         },
-        parseTypeMap() {
+        parseTypeMap(silent = false) {
             try {
                 return JSON.parse(this.typeMapText || "{}");
             } catch (e) {
-                this.$message.error("类型映射 JSON 解析失败");
+                if (!silent) {
+                    this.$message.error("类型映射 JSON 解析失败");
+                }
                 return {};
             }
         },
-        openTypeEditor() {
-            const devices = this.parseDevices();
-            const typeIds = this.getTypeIdsFromDevices(devices);
-            const typeMap = this.parseTypeMap();
-            const keys = typeIds.length ? typeIds : Object.keys(typeMap);
+        syncTypeMapWithDevices() {
+            const parsed = this.parseLooseJson(this.devicesText);
+            if (parsed == null) return;
+            const devices = Array.isArray(parsed) ? parsed : [parsed];
+            const currentMap = this.parseTypeMap(true);
+            const nextMap = this.buildTypeMapByDevices(devices, currentMap);
+            const nextText = JSON.stringify(nextMap, null, 2);
+            if (nextText !== this.typeMapText) {
+                this.typeMapText = nextText;
+            }
+        },
+        buildTypeMapByDevices(devices = [], currentMap = {}) {
+            const { typeIds, leftRightIndex, centerIndex } = this.getTypeIndexMaps(devices);
+            const map = {};
+            typeIds.forEach((typeId) => {
+                const current = currentMap[typeId] || {};
+                const fallback = DEFAULT_TYPE_MAP[typeId] || {};
+                const elementType =
+                    this.normalizeElementType(fallback.elementType) ||
+                    this.normalizeElementType(current.elementType) ||
+                    "Point";
+                const hasLeftRight = leftRightIndex.has(typeId);
+                const hasCenter = centerIndex.has(typeId);
+                const item = {
+                    elementType,
+                    offset: Number.isFinite(current.offset)
+                        ? current.offset
+                        : hasLeftRight
+                        ? leftRightIndex.get(typeId) * 30
+                        : 0,
+                    offsetCenter: Number.isFinite(current.offsetCenter)
+                        ? current.offsetCenter
+                        : hasCenter
+                        ? this.getDefaultOffsetCenter(centerIndex.get(typeId))
+                        : 0,
+                    stateMap:
+                        fallback.stateMap && typeof fallback.stateMap === "object"
+                            ? { ...fallback.stateMap }
+                            : current.stateMap && typeof current.stateMap === "object"
+                            ? current.stateMap
+                            : { ...DEFAULT_STATE_MAP },
+                };
+                const nameMode = fallback.nameMode || current.nameMode;
+                if (nameMode) {
+                    item.nameMode = nameMode;
+                }
+                if (elementType === "Point") {
+                    item.icon = current.icon || fallback.icon || "default";
+                }
+                map[typeId] = item;
+            });
+            return map;
+        },
+        getTypeIndexMaps(devices = []) {
+            const typeIds = [];
+            const allTypeSet = new Set();
             const leftRightTypes = [];
             const centerTypes = [];
             devices.forEach((dev) => {
                 const typeId = dev.deviceTypeId || dev.type;
                 if (!typeId) return;
+                if (!allTypeSet.has(typeId)) {
+                    allTypeSet.add(typeId);
+                    typeIds.push(typeId);
+                }
                 const dir = this.normalizeDirection(dev?.direction ?? dev?.dir);
                 if (dir === 2) {
                     if (!centerTypes.includes(typeId)) centerTypes.push(typeId);
-                } else {
-                    if (!leftRightTypes.includes(typeId)) leftRightTypes.push(typeId);
+                    return;
                 }
+                if (!leftRightTypes.includes(typeId)) leftRightTypes.push(typeId);
             });
-            const leftRightSet = new Set(leftRightTypes);
-            const centerSet = new Set(centerTypes);
-            const leftRightIndex = new Map();
-            const centerIndex = new Map();
-            let leftRightCounter = 0;
-            let centerCounter = 0;
-            keys.forEach((key) => {
-                if (leftRightSet.has(key)) {
-                    leftRightIndex.set(key, leftRightCounter);
-                    leftRightCounter += 1;
-                }
-                if (centerSet.has(key)) {
-                    centerIndex.set(key, centerCounter);
-                    centerCounter += 1;
-                }
-            });
+            return {
+                typeIds,
+                leftRightIndex: new Map(leftRightTypes.map((typeId, index) => [typeId, index])),
+                centerIndex: new Map(centerTypes.map((typeId, index) => [typeId, index])),
+            };
+        },
+        openTypeEditor() {
+            const devices = this.parseDevices();
+            const { typeIds, leftRightIndex, centerIndex } = this.getTypeIndexMaps(devices);
+            const typeMap = this.parseTypeMap();
+            const keys = typeIds;
             const rows = keys.map((key, index) => {
                 const current = typeMap[key] || {};
-                const elementType = this.normalizeElementType(current.elementType) || "Point";
+                const fallback = DEFAULT_TYPE_MAP[key] || {};
+                const elementType =
+                    this.normalizeElementType(fallback.elementType) ||
+                    this.normalizeElementType(current.elementType) ||
+                    "Point";
                 const offset = Number.isFinite(current.offset)
                     ? current.offset
-                    : (leftRightIndex.get(key) ?? index) * 40;
+                    : leftRightIndex.has(key)
+                    ? leftRightIndex.get(key) * 30
+                    : index * 30;
                 const offsetCenter =
                     Number.isFinite(current.offsetCenter)
                         ? current.offsetCenter
-                        : this.getDefaultOffsetCenter(
-                              centerIndex.get(key) ?? index
-                          );
-                const stateMap = current.stateMap || {
-                    "-1": "#2F7CEE",
-                    0: "#7B7A82",
-                    1: "#7B7A82",
-                    2: "#FF3040",
-                };
+                        : centerIndex.has(key)
+                        ? this.getDefaultOffsetCenter(centerIndex.get(key))
+                        : 0;
+                const stateMap =
+                    fallback.stateMap ||
+                    current.stateMap ||
+                    { ...DEFAULT_STATE_MAP };
                 return {
                     deviceTypeId: key,
                     elementType,
-                    icon: current.icon || "default",
+                    icon: current.icon || fallback.icon || "default",
                     offset,
                     offsetCenter,
                     stateMapText: JSON.stringify(stateMap),
@@ -326,6 +394,7 @@ new Vue({
             this.typeEditorVisible = true;
         },
         saveTypeEditor() {
+            const currentTypeMap = this.parseTypeMap(true);
             const map = {};
             for (const row of this.typeRows) {
                 let stateMap = null;
@@ -335,13 +404,20 @@ new Vue({
                     this.$message.error(`stateMap 解析失败: ${row.deviceTypeId}`);
                     return;
                 }
-                const elementType = this.normalizeElementType(row.elementType) || "Point";
+                const fallback = DEFAULT_TYPE_MAP[row.deviceTypeId] || {};
+                const current = currentTypeMap[row.deviceTypeId] || {};
+                const elementType =
+                    this.normalizeElementType(row.elementType) || "Point";
                 const item = {
                     elementType,
                     offset: Number(row.offset) || 0,
                     offsetCenter: Number(row.offsetCenter) || 0,
                     stateMap,
                 };
+                const nameMode = fallback.nameMode || current.nameMode;
+                if (nameMode) {
+                    item.nameMode = nameMode;
+                }
                 if (elementType === "Point") {
                     item.icon = row.icon || "default";
                 }
@@ -350,20 +426,9 @@ new Vue({
             this.typeMapText = JSON.stringify(map, null, 2);
             this.typeEditorVisible = false;
         },
-        getTypeIdsFromDevices(devices = []) {
-            const ids = [];
-            devices.forEach((dev) => {
-                const id = dev.deviceTypeId || dev.type;
-                if (!id) return;
-                if (!ids.includes(id)) {
-                    ids.push(id);
-                }
-            });
-            return ids;
-        },
         getDefaultOffsetCenter(index) {
             if (index === 0) return 0;
-            const step = Math.ceil(index / 2) * 40;
+            const step = Math.ceil(index / 2) * 30;
             return index % 2 === 1 ? -step : step;
         },
         normalizeDirection(direction) {
