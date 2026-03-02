@@ -1,6 +1,6 @@
 import Resolver from "/matrix/common/core/resolver.js";
 import { downloadJson } from "/matrix/common/core/utils.js";
-import { ICONS } from "/matrix/common/core/const.js";
+import { ICONS, Colors } from "/matrix/common/core/const.js";
 import { buildTunnelScene } from "./builder.js";
 
 Vue.use(antd);
@@ -462,6 +462,17 @@ new Vue({
                 sceneHeight: sceneEl?.clientHeight || this.bgSize.height,
                 deviceTypeMap,
             });
+            const palette = Object.values(Colors);
+            scene.elements.forEach((ele) => {
+                if (
+                    ele?.id === "tunnel-start" ||
+                    ele?.id === "tunnel-end" ||
+                    String(ele?.id || "").startsWith("tunnel-bg")
+                ) {
+                    return;
+                }
+                ele.color = palette[Math.floor(Math.random() * palette.length)];
+            });
             this.elementCount = scene.elements.length;
             return scene;
         },
@@ -479,7 +490,7 @@ new Vue({
         },
         mockDevices() {
             const count = Math.max(1, Number(this.form.mockCount) || 1);
-            const types = Object.keys(this.parseTypeMap());
+            const types = Object.keys(DEFAULT_TYPE_MAP);
             const startMil = Number(this.form.startMil) || 0;
             const endMil = Number(this.form.endMil) || startMil + 1;
             const minMil = Math.min(startMil, endMil);

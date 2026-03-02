@@ -171,6 +171,38 @@ const getCanvasByImageAndColor = (image, color) => {
 };
 
 /**
+ * 根据图标和颜色生成画布
+ * @param {Image} image
+ * @param {String} color
+ * @returns
+ */
+const getCanvasByImageAndColor2 = (image, color) => {
+    const size = PointRadius;
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+
+  canvas.width = size;
+  canvas.height = size;
+
+  const iconSize = Math.floor(size * 0.6);
+  const x = (size - iconSize) / 2;
+  const y = (size - iconSize) / 2;
+
+  // 1️⃣ 先画原始图标
+  ctx.drawImage(image, x, y, iconSize, iconSize);
+
+  // 2️⃣ 用 source-in 方式着色
+  ctx.globalCompositeOperation = "source-in";
+  ctx.fillStyle = color;
+  ctx.fillRect(0, 0, size, size);
+
+  // 3️⃣ 恢复默认
+  ctx.globalCompositeOperation = "source-over";
+
+  return canvas;
+};
+
+/**
  * 根据设备类型获取canvas对象
  * @param {String} icon
  * @param {String} color 颜色
