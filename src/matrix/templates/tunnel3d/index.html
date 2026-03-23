@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <link rel="stylesheet" href="/dep/plugins/ant-design/antd.min.css" />
+        <link rel="stylesheet/less" href="./index.less" />
+        <script src="/dep/js/less.min.js"></script>
+        <title>3D隧道模板</title>
+    </head>
+    <body>
+        <div id="app" class="template-page">
+            <section class="sidebar">
+                <div class="panel-title">Tunnel3D Template</div>
+                <a-form layout="vertical">
+                    <a-form-item label="长度(m)">
+                        <a-input-number v-model="form.length" :min="100" style="width: 100%" />
+                    </a-form-item>
+                    <a-form-item label="起始里程(m)">
+                        <a-input-number v-model="form.startMil" style="width: 100%" />
+                    </a-form-item>
+                </a-form>
+                <div class="actions">
+                    <a-button type="primary" @click="preview">预览</a-button>
+                    <a-button @click="download">下载配置</a-button>
+                </div>
+                <div class="section-title">场景配置</div>
+                <a-textarea v-model="jsonText" :rows="16"></a-textarea>
+            </section>
+            <section class="preview">
+                <div class="preview-title">Preview</div>
+                <div id="scene" class="scene"></div>
+            </section>
+        </div>
+
+        <script src="/dep/js/vue.min.js"></script>
+        <script src="/dep/js/vue-component-loader.js"></script>
+        <script src="/dep/plugins/ant-design/moment.js"></script>
+        <script src="/dep/plugins/ant-design/moment-with-locales.js"></script>
+        <script src="/dep/plugins/ant-design/antd-with-locales.min.js"></script>
+        <script src="/dep/plugins/ant-design/moment-locale-zh_cn.js"></script>
+        <script src="./index.js" type="module"></script>
+    </body>
+</html>

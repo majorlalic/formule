@@ -79,6 +79,8 @@ export const ElementType = {
     Picture: "Picture",
     CirclePoint: "CirclePoint",
     PointLine: "PointLine",
+    Tunnel3D: "Tunnel3D",
+    TunnelDeviceMarker3D: "TunnelDeviceMarker3D",
 };
 
 /**
@@ -143,6 +145,15 @@ export const SceneTypeMeta = {
                 { field: "path", type: "string", label: "模型路径" },
                 { field: "position", type: "vector3", label: "位置" },
                 { field: "scale", type: "number", label: "缩放级别" },
+            ],
+            [ElementType.Tunnel3D]: [
+                { field: "position", type: "vector3", label: "位置" },
+                { field: "length", type: "number", label: "长度" },
+                { field: "startMil", type: "number", label: "起始里程" },
+            ],
+            [ElementType.TunnelDeviceMarker3D]: [
+                { field: "position", type: "vector3", label: "位置" },
+                { field: "icon", type: "icon", label: "图标" },
             ],
         },
     },

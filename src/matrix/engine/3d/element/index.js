@@ -6,6 +6,8 @@ import Polygon from "./polygon.js";
 import Polyline from "./polyline.js";
 import Label from "./label.js";
 import Modal from "./modal.js";
+import Tunnel3D from "./tunnel3d.js";
+import TunnelDeviceMarker3D from "./tunnel-device-marker3d.js";
 
 const elements3d = {
     Point,
@@ -13,6 +15,8 @@ const elements3d = {
     Polyline,
     Modal,
     Label,
+    Tunnel3D,
+    TunnelDeviceMarker3D,
 };
 
 Object.entries(elements3d).forEach(([name, Cls]) => {
