@@ -270,6 +270,7 @@ export const ElementBehavior = {
     ChangeVisible: "changeVisible", // 显示/隐藏图元
     ChangePosition: "changePosition", // 修改图元位置
     ChangeValue: "changeValue", // 修改图元值
+    ChangeName: "changeName", // 修改图元名称
     Blink: "blink", // 闪烁
     StopBlink: "stopBlink", // 停止闪烁
 };
@@ -292,6 +293,9 @@ export const ElementBehaviorMeta = {
     [ElementBehavior.ChangeValue]: {
         scheme: ["value"],
     }, // 修改图元值
+    [ElementBehavior.ChangeName]: {
+        scheme: ["name"],
+    }, // 修改图元名称
     [ElementBehavior.Blink]: {
         scheme: [],
     }, // 闪烁

@@ -40,6 +40,7 @@ export default class BindingEngine {
                 bindingMap.get(binding.tag).push({
                     id: ele.id,
                     to: binding.to,
+                    target: this._normalizeTarget(binding.to),
                     calc: binding.calc || "",
                     calcFn,
                     map: binding.map || null,
@@ -58,10 +59,9 @@ export default class BindingEngine {
         if (bindings.length === 0) return [];
 
         let eleDatas = [];
-        bindings.forEach(({ id, to, calc, calcFn, map, range, defaultValue }) => {
-            let dataPath = this._normalizeDataPath(to);
-            if (!dataPath) {
-                console.warn(`bindings.to 仅支持 data 路径: ${to}`);
+        bindings.forEach(({ id, to, target, calc, calcFn, map, range, defaultValue }) => {
+            if (!target) {
+                console.warn(`不支持的 bindings.to: ${to}`);
                 return;
             }
             const computed = this._applyBindingValue(
@@ -75,11 +75,23 @@ export default class BindingEngine {
             const finalValue =
                 computed === undefined ? defaultValue : computed;
             if (finalValue === undefined) return;
-            let data = {};
-            data[dataPath] = finalValue;
+            if (target.type === "data") {
+                let data = {};
+                data[target.path] = finalValue;
+                eleDatas.push({
+                    id,
+                    data,
+                    payload: { [tag]: value },
+                });
+                return;
+            }
+
             eleDatas.push({
                 id,
-                data,
+                direct: {
+                    to: target.path,
+                    value: finalValue,
+                },
                 payload: { [tag]: value },
             });
         });
@@ -87,13 +99,25 @@ export default class BindingEngine {
         return eleDatas;
     }
 
-    _normalizeDataPath(path) {
+    _normalizeTarget(path) {
         if (!path || typeof path !== "string") return null;
         if (path.startsWith("data.")) {
-            return path.slice(5).replace(/\./g, "|");
+            return {
+                type: "data",
+                path: path.slice(5).replace(/\./g, "|"),
+            };
         }
         if (path.startsWith("data|")) {
-            return path.slice(5);
+            return {
+                type: "data",
+                path: path.slice(5),
+            };
+        }
+        if (["color", "visible", "name", "graph.value"].includes(path)) {
+            return {
+                type: "direct",
+                path,
+            };
         }
         return null;
     }

@@ -87,6 +87,13 @@ export class ElementDef {
     }
 
     /**
+     * 修改名称回调
+     */
+    changeName(name) {
+        throw new Error("Method 'changeName' must be implemented.");
+    }
+
+    /**
      * 修改位置
      * @param {Object} positon 目标位置
      * @param {Number} duration 时间

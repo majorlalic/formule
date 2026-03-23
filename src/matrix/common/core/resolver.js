@@ -1,4 +1,4 @@
-import { ModuleNames, EventNames } from "./const.js";
+import { ModuleNames, EventNames, ElementBehavior } from "./const.js";
 import EventBusWorker from "/common/js/eventBus/eventBusWorker.js";
 import { initFrame, deepClone } from "./utils.js";
 import { ActionDispatcher } from "./action-dispatcher.js";
@@ -46,6 +46,7 @@ export default class Resolver {
         this._initEvent();
         // 初始化动作处理器
         actionDispatcher = new ActionDispatcher(this, this._eventBus);
+        this.actionDispatcher = actionDispatcher;
         // 动作驱动引擎
         this.actionEngine = new ActionEngine(actionDispatcher, this.dataPointStore);
     }
@@ -174,7 +175,56 @@ export default class Resolver {
             this.bindingMap
         );
         if (eleDatas.length === 0) return;
-        this._handleCustomEvent(eleDatas);
-        this._eventBus.postMessage(EventNames.EleDataChange, eleDatas);
+
+        const dataUpdates = eleDatas.filter((item) => item?.data);
+        const directUpdates = eleDatas.filter((item) => item?.direct);
+
+        if (dataUpdates.length > 0) {
+            this._handleCustomEvent(dataUpdates);
+            this._eventBus.postMessage(EventNames.EleDataChange, dataUpdates);
+        }
+
+        if (directUpdates.length > 0) {
+            this._applyDirectUpdates(directUpdates);
+        }
+    }
+
+    _applyDirectUpdates(directUpdates = []) {
+        directUpdates.forEach(({ id, direct }) => {
+            const ele = this.eleMap.get(id);
+            if (!ele || !direct?.to) return;
+
+            const { to, value } = direct;
+            if (to === "color") {
+                ele.color = value;
+                this._eventBus.postMessage(EventNames.ChangeEleColor, id, value);
+                return;
+            }
+            if (to === "visible") {
+                ele.visible = !!value;
+                this._eventBus.postMessage(EventNames.ChangeVisible, id, !!value);
+                return;
+            }
+            if (to === "graph.value") {
+                ele.graph = ele.graph || {};
+                ele.graph.value = value;
+                this._eventBus.postMessage(
+                    EventNames.RunEleBehavior,
+                    id,
+                    ElementBehavior.ChangeValue,
+                    { value }
+                );
+                return;
+            }
+            if (to === "name") {
+                ele.name = value;
+                this._eventBus.postMessage(
+                    EventNames.RunEleBehavior,
+                    id,
+                    ElementBehavior.ChangeName,
+                    { name: value }
+                );
+            }
+        });
     }
 }

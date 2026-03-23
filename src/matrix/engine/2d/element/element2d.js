@@ -74,6 +74,16 @@ export default class Element2d extends ElementDef {
     }
 
     /**
+     * 修改名称回调
+     * @param {String} name
+     */
+    changeName(name) {
+        this.name = name;
+        this._updateName(this.nameTag, name);
+        this.draw();
+    }
+
+    /**
      * 修改位置
      * @param {Object} positon 目标位置
      * @param {Number} duration 时间

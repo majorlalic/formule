@@ -120,22 +120,7 @@ export const scene = {
             ],
             conf: {
                 nameMode: NameModes.Hover,
-                actions: [
-                    {
-                        when: "data.value != null",
-                        do: "changeValue",
-                        params: {
-                            value: "@data.value",
-                        },
-                    },
-                    {
-                        when: "data.color != null",
-                        do: "changeColor",
-                        params: {
-                            color: "@data.color",
-                        },
-                    },
-                ],
+                
                 trigger: [],
                 
             },
@@ -302,6 +287,51 @@ export const scene = {
                         params: { visible: false },
                     },
                 ],
+                trigger: [],
+            },
+        },
+        {
+            id: "label-direct-bind",
+            name: "直绑示例",
+            color: Colors.Default,
+            visible: true,
+            layer: [],
+            zIndex: 4,
+            type: ElementType.Label,
+            graph: {
+                position: { x: 160, y: 360 },
+                value: "直绑初始值",
+            },
+            data: {},
+            bindings: [
+                {
+                    tag: "temp_c",
+                    to: "color",
+                    range: [
+                        { gt: 100, value: "#E43D30" },
+                        { gt: 80, value: "#FABE11" },
+                        { lte: 80, value: "#2F7CEE" },
+                    ],
+                },
+                {
+                    tag: "device_online",
+                    to: "visible",
+                    calc: "return !!value;",
+                },
+                {
+                    tag: "flow",
+                    to: "graph.value",
+                    calc: "return '流量 ' + value + ' L/s';",
+                },
+                {
+                    tag: "temp_c",
+                    to: "name",
+                    calc: "return '直绑标签 温度' + value.toFixed(1) + '℃ 速度' + (tag('speed_ms') * 3.6).toFixed(1) + 'km/h';",
+                },
+            ],
+            conf: {
+                nameMode: NameModes.Permanent,
+                actions: [],
                 trigger: [],
             },
         },
