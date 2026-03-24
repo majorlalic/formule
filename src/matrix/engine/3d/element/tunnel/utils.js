@@ -358,7 +358,7 @@ function loadScaleFont() {
     return scaleFontPromise;
 }
 
-function resolveAssetUrl(path) {
+export function resolveAssetUrl(path) {
     const pathname = window.location.pathname || "";
     const parts = pathname.split("/").filter(Boolean);
     if (parts.length > 0) {

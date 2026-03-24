@@ -16,6 +16,24 @@ const DEFAULT_TUNNEL = {
 const LANE_GAP = 14;
 const FLOOR_WIDTH = 10.2;
 const LENGTH_SCALE = 1 / 3;
+const DEVICE_TYPE_MAP = {
+    smoke_sensor: { icon: "smoke", color: "#58d7ff" },
+    camera: { icon: "camera", color: "#58d7ff" },
+    door: { icon: "door", color: "#58d7ff" },
+    line_device: { icon: "radar", color: "#ffd24a" },
+};
+
+const normalizeDirection = (direction) => {
+    if (direction === 0 || direction === "0") return -1;
+    if (direction === 1 || direction === "1") return 1;
+    if (direction === 2 || direction === "2") return 0;
+    if (typeof direction === "string") {
+        if (direction.includes("左")) return 1;
+        if (direction.includes("右")) return -1;
+        if (direction.includes("中")) return 0;
+    }
+    return 1;
+};
 
 export function buildTunnel3dScene(devices = [], options = {}) {
     const tunnel = { ...DEFAULT_TUNNEL, ...options };
@@ -47,6 +65,50 @@ export function buildTunnel3dScene(devices = [], options = {}) {
         },
     };
 
+    const edgeZ = LANE_GAP / 2 + FLOOR_WIDTH / 2;
+    const deviceElements = (devices || []).map((device, index) => {
+        const type = device?.deviceTypeId || device?.type || "camera";
+        const typeMeta = DEVICE_TYPE_MAP[type] || DEVICE_TYPE_MAP.camera;
+        const rawMil = device?.sort != null
+            ? toNum(device.sort, 0)
+            : device?.mil != null
+            ? toNum(device.mil, startMil)
+            : 0;
+        const relativeMil =
+            rawMil >= startMil ? Math.max(0, rawMil - startMil) : Math.max(0, rawMil);
+        const x = Math.min(length, relativeMil) * LENGTH_SCALE;
+        const direction = normalizeDirection(device?.direction ?? device?.dir);
+        const markerColor = device?.color || typeMeta.color;
+
+        return {
+            id: `tunnel-device-${device?.id || index + 1}`,
+            name: device?.name || device?.deviceTypeName || `设备${index + 1}`,
+            type: ElementType.TunnelDeviceMarker3D,
+            color: markerColor,
+            visible: true,
+            layer: ["device"],
+            zIndex: 3,
+            graph: {
+                position: {
+                    x,
+                    y: 0.13,
+                    z: direction === 0 ? 0 : direction * edgeZ,
+                },
+                icon: device?.icon || typeMeta.icon,
+                markerColor,
+            },
+            data: {
+                origin: device,
+                mil: startMil + relativeMil,
+            },
+            conf: {
+                nameMode: NameModes.Hidden,
+                actions: [],
+                trigger: [],
+            },
+        };
+    });
+
     return {
         id: tunnel.sceneId,
         name: tunnel.sceneName,
@@ -65,7 +127,7 @@ export function buildTunnel3dScene(devices = [], options = {}) {
                 },
             },
         },
-        elements: [tunnelElement],
+        elements: [tunnelElement, ...deviceElements],
         anchors: [
             {
                 id: "tunnel-center",

@@ -25,6 +25,8 @@
                     <a-button type="primary" @click="preview">预览</a-button>
                     <a-button @click="download">下载配置</a-button>
                 </div>
+                <div class="section-title">设备配置</div>
+                <a-textarea v-model="devicesText" :rows="10"></a-textarea>
                 <div class="section-title">场景配置</div>
                 <a-textarea v-model="jsonText" :rows="16"></a-textarea>
             </section>

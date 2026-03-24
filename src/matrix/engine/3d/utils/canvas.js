@@ -113,6 +113,7 @@ const buildPopCanvas = (popImage, deviceImage, picImage, name, time, type) => {
 };
 
 export const deviceCanvasMap = new Map();
+export const deviceIconCanvasMap = new Map();
 
 /**
  * 初始化设备画布映射
@@ -127,10 +128,13 @@ const initDeviceCanvasMap = () => {
         image.onload = () => {
             // 初始化多个状态的canvas
             let res = {};
+            let iconRes = {};
             colors.forEach((color) => {
                 res[color] = getCanvasByImageAndColor(image, color);
+                iconRes[color] = getCanvasByImageAndColor2(image, color);
             });
             deviceCanvasMap.set(`${value}`, res);
+            deviceIconCanvasMap.set(`${value}`, iconRes);
         };
     });
 };
@@ -236,6 +240,41 @@ export const getDeviceCanvas = (icon, color = Colors.Normal) => {
         }
 
         return deviceCanvasMap.get(`${icon}`)[color];
+    });
+};
+
+export const getDeviceIconCanvas = (icon, color = Colors.Normal) => {
+    return new Promise((resolve, reject) => {
+        if (!icon) {
+            icon = ICONS[0].value;
+        }
+
+        if (deviceIconCanvasMap.has(icon)) {
+            let colorObj = deviceIconCanvasMap.get(icon);
+            if (colorObj.hasOwnProperty(color)) {
+                resolve(colorObj[color]);
+            } else {
+                let url = ICONS.find((i) => i.value == icon).url;
+
+                var image = new Image();
+                image.src = url;
+                image.onload = () => {
+                    colorObj[color] = getCanvasByImageAndColor2(image, color);
+                    resolve(colorObj[color]);
+                };
+            }
+            return;
+        }
+
+        const target = ICONS.find((i) => i.value == icon) || ICONS[0];
+        var image = new Image();
+        image.src = target.url;
+        image.onload = () => {
+            const cache = { [color]: getCanvasByImageAndColor2(image, color) };
+            deviceIconCanvasMap.set(`${icon}`, cache);
+            resolve(cache[color]);
+        };
+        image.onerror = reject;
     });
 };
 
